@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import React from 'react';
 
-import { linkStyle } from './_constants';
+import { linkStyle } from './constants';
 
 export default function SignInLink() {
   return (

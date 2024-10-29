@@ -9,7 +9,7 @@ import { SignUpSchema } from '@/schemas/auth';
 import { signUp } from '@/services/auth/signUp';
 import { AuthResponse } from '@/services/auth/types';
 
-import { SignUpFormProps } from '../../app/auth/(sign)/signup/_types';
+import { SignUpFormProps } from '../../components/auth/signup/types';
 import { handleSignUpError } from '../../services/auth/signUpErrorHandler';
 
 export default function useSignUpForm(): SignUpFormProps {

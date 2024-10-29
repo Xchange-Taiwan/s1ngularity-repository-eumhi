@@ -7,7 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { FormField, FormMessage } from '@/components/ui/form';
 import { SignUpSchema } from '@/schemas/auth';
 
-import { linkStyle } from './_constants';
+import { linkStyle } from './constants';
 
 interface TermsOfServiceCheckboxProps {
   control: Control<z.infer<typeof SignUpSchema>>;

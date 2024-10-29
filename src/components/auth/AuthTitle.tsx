@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 
 interface AuthTitleProps {
-  title: string;
+  children: ReactNode;
 }
 
-export default function AuthTitle({ title }: AuthTitleProps) {
+export default function AuthTitle({ children }: AuthTitleProps) {
   return (
-    <h1 className="text-center text-[32px] font-bold leading-tight">{title}</h1>
+    <h1 className="text-center text-[32px] font-bold leading-tight">
+      {children}
+    </h1>
   );
 }

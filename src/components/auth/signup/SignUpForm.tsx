@@ -4,9 +4,9 @@ import AuthButton from '@/components/auth/AuthButton';
 import AuthFormInput from '@/components/auth/AuthFormInput';
 import { Form } from '@/components/ui/form';
 
-import { formFieldData } from './_constants';
-import TermsOfServiceCheckbox from './_TermsOfServiceCheckbox';
-import { SignUpFormFieldType, SignUpFormProps } from './_types';
+import { formFieldData } from './constants';
+import TermsOfServiceCheckbox from './TermsOfServiceCheckbox';
+import { SignUpFormFieldType, SignUpFormProps } from './types';
 
 export default function SignUpForm({
   form,

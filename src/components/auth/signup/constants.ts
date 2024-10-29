@@ -1,4 +1,4 @@
-import { SignUpFormFieldType } from './_types';
+import { SignUpFormFieldType } from './types';
 
 export const linkStyle =
   'text-sm font-medium text-black underline underline-offset-2';
