@@ -1,12 +1,16 @@
 import type { NextAuthConfig } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import Google from 'next-auth/providers/google';
+// import Google from 'next-auth/providers/google';
+import GoogleProvider from 'next-auth/providers/google';
 
 import { SignInSchema } from '@/schemas/auth';
 
 export default {
   providers: [
-    Google,
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    }),
     CredentialsProvider({
       async authorize(credentials) {
         const validatedFields = SignInSchema.safeParse(credentials);
@@ -37,23 +41,28 @@ export default {
       },
     }),
   ],
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user && 'id' in user) {
-        token.id = user.id as string;
-        token.token = user.token as string;
-        token.onBoarding = user.onBoarding as boolean;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      session.user = {
-        id: token.id as string,
-        onBoarding: token.onBoarding as boolean,
-      };
-      session.accessToken = token.token as string;
-      return session;
-    },
-  },
+  // callbacks: {
+  //   async jwt({ account }) {
+  //     console.log('Account Data:', account);
+  //   },
+  // },
+  // callbacks: {
+  //   async jwt({ token, user }) {
+  //     if (user && 'id' in user) {
+  //       token.id = user.id as string;
+  //       token.token = user.token as string;
+  //       token.onBoarding = user.onBoarding as boolean;
+  //     }
+  //     return token;
+  //   },
+  //   async session({ session, token }) {
+  //     session.user = {
+  //       id: token.id as string,
+  //       onBoarding: token.onBoarding as boolean,
+  //     };
+  //     session.accessToken = token.token as string;
+  //     return session;
+  //   },
+  // },
   secret: process.env.NEXTAUTH_SECRET,
 } satisfies NextAuthConfig;
