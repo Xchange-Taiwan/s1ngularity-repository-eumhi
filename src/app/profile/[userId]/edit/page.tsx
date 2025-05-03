@@ -1,11 +1,16 @@
 'use client';
 import { zodResolver } from '@hookform/resolvers/zod';
 import ArrowBackIcon from '@mui/icons-material/ArrowBackIosNew';
-import ImageIcon from '@mui/icons-material/ImageOutlined';
-import { Pencil1Icon, PlusIcon } from '@radix-ui/react-icons';
+import { PlusIcon } from '@radix-ui/react-icons';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 
+import { AvatarSection } from '@/components/profile/edit/avatarSection';
+import {
+  defaultValues,
+  formSchema,
+  ProfileFormValues,
+} from '@/components/profile/edit/profileSchema';
 import { Button } from '@/components/ui/button';
 import {
   FormControl,
@@ -25,68 +30,16 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 
-const formSchema = z.object({
-  name: z.string().min(1, '請輸入姓名').max(20, '最多不可超過 20 字'),
-  region: z.string({ required_error: '請選擇地區' }),
-  statement: z.string(),
-  about: z.string(),
-  seniority: z.string({ required_error: '請選擇職務級別' }),
-  job: z.string(),
-  company: z.string(),
-  jobPeriodStart: z.string(),
-  jobPeriodEnd: z.string(),
-  industry: z.string(),
-  jobLocation: z.string(),
-  description: z.string(),
-  subject: z.string(),
-  school: z.string(),
-  educationPeriodStart: z.string(),
-  educationPeriodEnd: z.string(),
-  educationLocation: z.string(),
-  linkedin: z.string(),
-  facebook: z.string(),
-  instagram: z.string(),
-  twitter: z.string(),
-  youtube: z.string(),
-  website: z.string(),
-});
-
 const onSubmit = (values: z.infer<typeof formSchema>) => {
   console.log(values);
 };
 
 export default function Page() {
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<ProfileFormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: '',
-      region: '',
-      statement: '',
-      about: '',
-      seniority: '',
-      job: '',
-      company: '',
-      jobPeriodStart: '',
-      jobPeriodEnd: '',
-      industry: '',
-      jobLocation: '',
-      description: '',
-      subject: '',
-      school: '',
-      educationPeriodStart: '',
-      educationPeriodEnd: '',
-      educationLocation: '',
-      linkedin: '',
-      facebook: '',
-      instagram: '',
-      twitter: '',
-      youtube: '',
-      website: '',
-    },
+    defaultValues,
   });
-  const handleUploadAvatar = () => {
-    alert('TODO: upload avatar');
-  };
+
   const handleGoToPrev = () => {};
   return (
     <div className="mx-auto w-11/12 max-w-[1064px] pb-20 pt-10">
@@ -115,22 +68,12 @@ export default function Page() {
       </div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10">
-          <div className="flex flex-col border-t-2 border-solid border-background-border pt-10 lg:flex-row">
-            <div className="max-w-80 grow">
-              <p className="mb-4 text-xl font-bold">個人頭像</p>
-            </div>
-            <div>
-              <div
-                className="relative flex h-32 w-32 cursor-pointer items-center justify-center rounded-full border-2 border-[#B7CBCB] bg-[#F4FCFC] p-5"
-                onClick={handleUploadAvatar}
-              >
-                <ImageIcon sx={{ fontSize: 80, color: '#B7CBCB' }} />
-                <div className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full border border-solid border-background-border bg-background-white">
-                  <Pencil1Icon />
-                </div>
-              </div>
-            </div>
-          </div>
+          <AvatarSection
+            control={form.control}
+            name="avatarFile"
+            avatarUrl={''}
+          />
+
           <div className="flex flex-col border-t-2 border-solid border-background-border pt-10 lg:flex-row">
             <div className="max-w-80 grow">
               <p className="mb-4 text-xl font-bold">姓名</p>
