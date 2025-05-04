@@ -6,7 +6,11 @@ import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 
 import { AvatarSection } from '@/components/profile/edit/avatarSection';
-import { TextareaField, TextField } from '@/components/profile/edit/fields';
+import {
+  SelectField,
+  TextareaField,
+  TextField,
+} from '@/components/profile/edit/fields';
 import {
   defaultValues,
   formSchema,
@@ -88,35 +92,15 @@ export default function Page() {
             <TextareaField form={form} name="about" rows={6} />
           </Section>
 
-          <div className="flex flex-col border-t-2 border-solid border-background-border pt-10 lg:flex-row">
-            <div className="max-w-80 grow">
-              <p className="mb-4 text-xl font-bold">職務級別</p>
-            </div>
-            <div className="grow">
-              <FormField
-                control={form.control}
-                name="seniority"
-                render={({ field }) => (
-                  <FormItem>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="請填入您的職務級別" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value={'junior'}>junior</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
+          <Section title="職務級別">
+            <SelectField
+              form={form}
+              name="seniority"
+              placeholder="請填入您的職務級別"
+              options={[{ label: 'junior', value: 'junior' }]}
+            />
+          </Section>
+
           <div className="flex flex-col border-t-2 border-solid border-background-border pt-10 lg:flex-row">
             <div className="max-w-80 grow">
               <p className="mb-4 text-xl font-bold">工作經驗</p>
