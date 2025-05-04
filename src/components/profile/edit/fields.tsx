@@ -26,12 +26,17 @@ import { ProfileFormValues } from './profileSchema';
 
 export interface TextFieldProps {
   form: UseFormReturn<ProfileFormValues>;
-  /** 只能傳 string 欄位；若傳其他型別請用 as const 斷言避免報錯 */
+  /** Only string fields are supported; use `as const` for other types to avoid errors */
   name: keyof ProfileFormValues;
+  /** Placeholder text (you can pass Traditional Chinese here) */
   placeholder?: string;
+  /** HTML input type (e.g. "text", "email") */
   type?: React.HTMLInputTypeAttribute;
 }
 
+/**
+ * A generic text input field that guards against non-string values.
+ */
 export const TextField = ({
   form,
   name,
@@ -44,7 +49,7 @@ export const TextField = ({
     render={({ field }) => (
       <FormItem>
         <FormControl>
-          {/* 若欄位不是字串（例如 File）就給空字串避免型別衝突 */}
+          {/* Render empty string for non-string values to satisfy InputProps */}
           <Input
             {...field}
             value={typeof field.value === 'string' ? field.value : ''}
@@ -59,9 +64,13 @@ export const TextField = ({
 );
 
 export interface TextareaFieldProps extends Omit<TextFieldProps, 'type'> {
+  /** Number of rows (height) for the textarea */
   rows?: number;
 }
 
+/**
+ * A generic textarea field with configurable row height.
+ */
 export const TextareaField = ({
   form,
   name,
@@ -74,6 +83,7 @@ export const TextareaField = ({
     render={({ field }) => (
       <FormItem>
         <FormControl>
+          {/* Render empty string for non-string values to satisfy TextareaProps */}
           <Textarea
             {...field}
             value={typeof field.value === 'string' ? field.value : ''}
@@ -90,10 +100,14 @@ export const TextareaField = ({
 export interface SelectFieldProps {
   form: UseFormReturn<ProfileFormValues>;
   name: keyof ProfileFormValues;
+  /** Placeholder text (e.g. "Please select…") */
   placeholder?: string;
   options: Array<{ label: string; value: string }>;
 }
 
+/**
+ * A generic select dropdown field.
+ */
 export const SelectField = ({
   form,
   name,
