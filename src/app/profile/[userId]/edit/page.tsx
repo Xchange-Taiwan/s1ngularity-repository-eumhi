@@ -80,25 +80,10 @@ export default function Page() {
             <TextField form={form} name="name" placeholder="請填入您的姓名" />
           </Section>
 
-          <div className="flex flex-col border-t-2 border-solid border-background-border pt-10 lg:flex-row">
-            <div className="max-w-80 grow">
-              <p className="mb-4 text-xl font-bold">Personal Statement</p>
-            </div>
-            <div className="grow">
-              <FormField
-                control={form.control}
-                name="statement"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
+          <Section title="Personal Statement">
+            <TextField form={form} name="statement" />
+          </Section>
+
           <div className="flex flex-col border-t-2 border-solid border-background-border pt-10 lg:flex-row">
             <div className="max-w-80 grow">
               <p className="mb-4 text-xl font-bold">關於我</p>
