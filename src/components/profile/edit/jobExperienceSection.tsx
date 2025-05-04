@@ -5,8 +5,23 @@ import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
 
 import { Button } from '@/components/ui/button';
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 
-import { SelectField, TextareaField, TextField } from './fields';
 import { ProfileFormValues } from './profileSchema';
 import { Section } from './section';
 
@@ -14,18 +29,66 @@ interface Props {
   form: UseFormReturn<ProfileFormValues>;
 }
 
+/**
+ * Re‑implemented工作經驗區塊
+ * — 保留 label、margin‑bottom 與原始設計一致
+ */
 export const JobExperienceSection: React.FC<Props> = ({ form }) => (
   <Section title="工作經驗">
-    <div className="block grow gap-6 md:flex">
-      <TextField form={form} name="job" placeholder="職稱" />
-      <TextField form={form} name="company" placeholder="公司名稱" />
+    {/* 職稱 & 公司 */}
+    <div className="mb-6 gap-6 md:flex">
+      <FormField
+        control={form.control}
+        name="job"
+        render={({ field }) => (
+          <FormItem className="mb-4 grow md:mb-0">
+            <FormLabel>職稱</FormLabel>
+            <FormControl>
+              <Input {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      <FormField
+        control={form.control}
+        name="company"
+        render={({ field }) => (
+          <FormItem className="grow">
+            <FormLabel>公司名稱</FormLabel>
+            <FormControl>
+              <Input {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
     </div>
-    <div className="block grow md:flex">
-      <SelectField
-        form={form}
+
+    {/* 期間 */}
+    <div className="mb-6 gap-2 md:flex">
+      <FormField
+        control={form.control}
         name="jobPeriodStart"
-        placeholder="Start"
-        options={[{ label: '2024', value: '2024' }]}
+        render={({ field }) => (
+          <FormItem className="mb-4 grow basis-1/2 md:mb-0">
+            <FormLabel>Period</FormLabel>
+            <Select
+              onValueChange={field.onChange}
+              defaultValue={String(field.value ?? '')}
+            >
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Start" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value="2024">2024</SelectItem>
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
       />
       <p className="relative bottom-[-8px] mx-2 my-auto hidden text-center md:block">
         ~
@@ -33,32 +96,97 @@ export const JobExperienceSection: React.FC<Props> = ({ form }) => (
       <p className="relative bottom-[-8px] mx-2 my-auto text-center text-sm md:hidden">
         to
       </p>
-      <SelectField
-        form={form}
+      <FormField
+        control={form.control}
         name="jobPeriodEnd"
-        placeholder="present"
-        options={[{ label: 'now', value: 'now' }]}
+        render={({ field }) => (
+          <FormItem className="grow basis-1/2">
+            <FormLabel className="invisible md:visible">&nbsp;</FormLabel>
+            <Select
+              onValueChange={field.onChange}
+              defaultValue={String(field.value ?? '')}
+            >
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="present" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value="now">now</SelectItem>
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
       />
     </div>
-    <div className="block grow gap-6 md:flex">
-      <SelectField
-        form={form}
+
+    {/* 產業 & 地點 */}
+    <div className="mb-6 gap-6 md:flex">
+      <FormField
+        control={form.control}
         name="industry"
-        placeholder="請填入您的產業"
-        options={[{ label: '金融業Ｆ', value: '金融業' }]}
+        render={({ field }) => (
+          <FormItem className="mb-4 grow basis-1/2 md:mb-0">
+            <FormLabel>產業</FormLabel>
+            <Select
+              onValueChange={field.onChange}
+              defaultValue={String(field.value ?? '')}
+            >
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="請填入您的產業" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value="金融業">金融業Ｆ</SelectItem>
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
       />
-      <SelectField
-        form={form}
+      <FormField
+        control={form.control}
         name="jobLocation"
-        placeholder="請填入您的地點"
-        options={[{ label: '台北', value: '台北' }]}
+        render={({ field }) => (
+          <FormItem className="grow basis-1/2">
+            <FormLabel>地點</FormLabel>
+            <Select
+              onValueChange={field.onChange}
+              defaultValue={String(field.value ?? '')}
+            >
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="請填入您的地點" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value="台北">台北</SelectItem>
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
       />
     </div>
-    <TextareaField form={form} name="description" rows={3} />
-    <Button
-      variant="ghost"
-      className="mt-4 grow rounded-full px-4 py-3 text-brand-500 sm:grow-0"
-    >
+
+    {/* 描述 */}
+    <FormField
+      control={form.control}
+      name="description"
+      render={({ field }) => (
+        <FormItem className="mb-6">
+          <FormLabel>描述</FormLabel>
+          <FormControl>
+            <Textarea {...field} className="h-24" />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+
+    <Button variant="ghost" className="rounded-full px-4 py-3 text-brand-500">
       <PlusIcon className="mr-2 h-5 w-5" />
       新增
     </Button>
