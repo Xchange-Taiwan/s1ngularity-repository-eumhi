@@ -6,11 +6,13 @@ import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 
 import { AvatarSection } from '@/components/profile/edit/avatarSection';
+import { TextField } from '@/components/profile/edit/fields';
 import {
   defaultValues,
   formSchema,
   ProfileFormValues,
 } from '@/components/profile/edit/profileSchema';
+import { Section } from '@/components/profile/edit/section';
 import { Button } from '@/components/ui/button';
 import {
   FormControl,
@@ -74,25 +76,10 @@ export default function Page() {
             avatarUrl={''}
           />
 
-          <div className="flex flex-col border-t-2 border-solid border-background-border pt-10 lg:flex-row">
-            <div className="max-w-80 grow">
-              <p className="mb-4 text-xl font-bold">姓名</p>
-            </div>
-            <div className="grow">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Input placeholder="請填入您的姓名" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
+          <Section title="姓名">
+            <TextField form={form} name="name" placeholder="請填入您的姓名" />
+          </Section>
+
           <div className="flex flex-col border-t-2 border-solid border-background-border pt-10 lg:flex-row">
             <div className="max-w-80 grow">
               <p className="mb-4 text-xl font-bold">Personal Statement</p>
