@@ -52,34 +52,44 @@ interface Props {
   form: UseFormReturn<ProfileFormValues>;
 }
 
-export const LinksSection: React.FC<Props> = ({ form }) => (
+/**
+ * Links section component
+ * - Renders input fields for social and website links
+ */
+export const LinksSection = ({ form }: Props) => (
   <Section title="個人連結">
     {SOCIAL_LINKS.map(({ name, label, icon }) => (
       <FormField
         key={name}
         control={form.control}
         name={name}
-        render={({ field }) => (
-          <FormItem className="mb-4">
-            <FormLabel>{label}</FormLabel>
-            <div className="flex items-center">
-              <div
-                className="mr-3 h-5 w-5"
-                style={{
-                  background: `url('${icon}') center/contain no-repeat`,
-                }}
-              />
-              <FormControl>
-                <Input
-                  placeholder="請填入您的連結"
-                  {...field}
-                  className="!m-auto"
+        render={({ field }) => {
+          // Ensure the input value is a string to satisfy InputProps
+          const value = typeof field.value === 'string' ? field.value : '';
+          return (
+            <FormItem className="mb-4">
+              <FormLabel>{label}</FormLabel>
+              <div className="flex items-center">
+                <div
+                  className="mr-3 h-5 w-5 bg-contain bg-center bg-no-repeat"
+                  style={{ backgroundImage: `url('${icon}')` }}
                 />
-              </FormControl>
-            </div>
-            <FormMessage />
-          </FormItem>
-        )}
+                <FormControl>
+                  <Input
+                    placeholder="請填入您的連結"
+                    value={value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                    ref={field.ref}
+                    className="!m-auto"
+                  />
+                </FormControl>
+              </div>
+              <FormMessage />
+            </FormItem>
+          );
+        }}
       />
     ))}
   </Section>
