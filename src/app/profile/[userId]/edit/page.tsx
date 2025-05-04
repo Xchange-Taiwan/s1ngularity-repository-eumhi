@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 
 import { AvatarSection } from '@/components/profile/edit/avatarSection';
-import { TextField } from '@/components/profile/edit/fields';
+import { TextareaField, TextField } from '@/components/profile/edit/fields';
 import {
   defaultValues,
   formSchema,
@@ -84,25 +84,10 @@ export default function Page() {
             <TextField form={form} name="statement" />
           </Section>
 
-          <div className="flex flex-col border-t-2 border-solid border-background-border pt-10 lg:flex-row">
-            <div className="max-w-80 grow">
-              <p className="mb-4 text-xl font-bold">關於我</p>
-            </div>
-            <div className="grow">
-              <FormField
-                control={form.control}
-                name="about"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Textarea {...field} className="h-48" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
+          <Section title="關於我">
+            <TextareaField form={form} name="about" rows={6} />
+          </Section>
+
           <div className="flex flex-col border-t-2 border-solid border-background-border pt-10 lg:flex-row">
             <div className="max-w-80 grow">
               <p className="mb-4 text-xl font-bold">職務級別</p>
