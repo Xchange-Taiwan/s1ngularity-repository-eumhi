@@ -1,6 +1,8 @@
 'use client';
 import { zodResolver } from '@hookform/resolvers/zod';
 import ArrowBackIcon from '@mui/icons-material/ArrowBackIosNew';
+import { Cat, Dog, Fish, Rabbit, Turtle } from 'lucide-react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 
@@ -21,6 +23,7 @@ import {
 import { Section } from '@/components/profile/edit/section';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
+import { MultiSelect } from '@/components/ui/multi-select';
 import useLocations from '@/hooks/user/country/useLocations';
 import useIndustries from '@/hooks/user/industry/useIndustries';
 
@@ -38,6 +41,18 @@ export default function Page() {
     resolver: zodResolver(formSchema),
     defaultValues,
   });
+
+  const frameworksList = [
+    { value: 'react', label: 'React', icon: Turtle },
+    { value: 'angular', label: 'Angular', icon: Cat },
+    { value: 'vue', label: 'Vue', icon: Dog },
+    { value: 'svelte', label: 'Svelte', icon: Rabbit },
+    { value: 'ember', label: 'Ember', icon: Fish },
+  ];
+  const [selectedFrameworks, setSelectedFrameworks] = useState<string[]>([
+    'react',
+    'angular',
+  ]);
 
   const handleGoToPrev = () => {};
   return (
@@ -78,7 +93,15 @@ export default function Page() {
 
           {isMentor && (
             <Section title="我能提供的服務">
-              <h1> TBD</h1>
+              <MultiSelect
+                options={frameworksList}
+                onValueChange={setSelectedFrameworks}
+                defaultValue={selectedFrameworks}
+                placeholder="Select frameworks"
+                variant="inverted"
+                animation={2}
+                maxCount={3}
+              />
             </Section>
           )}
 
