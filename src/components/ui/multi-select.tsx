@@ -1,5 +1,5 @@
 import { cva, type VariantProps } from 'class-variance-authority';
-import { CheckIcon, ChevronDown, XCircle, XIcon } from 'lucide-react';
+import { CheckIcon, ChevronDown, X, XIcon } from 'lucide-react';
 import * as React from 'react';
 
 import { Badge } from '@/components/ui/badge';
@@ -36,7 +36,7 @@ const multiSelectVariants = cva(
           'border-foreground/10 bg-secondary text-secondary-foreground hover:bg-secondary/80',
         destructive:
           'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80',
-        inverted: 'inverted',
+        primaryAlt: 'primaryAlt',
       },
     },
     defaultVariants: {
@@ -125,7 +125,6 @@ export const MultiSelect = React.forwardRef<
       animation = 0,
       maxCount = 3,
       modalPopover = false,
-      // asChild = false,
       className,
       ...props
     },
@@ -134,7 +133,6 @@ export const MultiSelect = React.forwardRef<
     const [selectedValues, setSelectedValues] =
       React.useState<string[]>(defaultValue);
     const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
-    // const [isAnimating, setIsAnimating] = React.useState(false);
 
     const handleInputKeyDown = (
       event: React.KeyboardEvent<HTMLInputElement>,
@@ -197,6 +195,7 @@ export const MultiSelect = React.forwardRef<
               'bg-inherit hover:bg-inherit flex h-auto min-h-10 w-full items-center justify-between rounded-md border p-1 [&_svg]:pointer-events-auto',
               className,
             )}
+            variant={variant}
           >
             {selectedValues.length > 0 ? (
               <div className="flex w-full items-center justify-between">
@@ -207,17 +206,15 @@ export const MultiSelect = React.forwardRef<
                     return (
                       <Badge
                         key={value}
-                        className={cn(
-                          // isAnimating ? 'animate-bounce' : '',
-                          multiSelectVariants({ variant }),
-                        )}
+                        className={cn(multiSelectVariants({ variant }))}
                         style={{ animationDuration: `${animation}s` }}
+                        variant={variant}
                       >
                         {IconComponent && (
                           <IconComponent className="mr-2 h-4 w-4" />
                         )}
                         {option?.label}
-                        <XCircle
+                        <X
                           className="ml-2 h-4 w-4 cursor-pointer"
                           onClick={(event) => {
                             event.stopPropagation();
@@ -231,13 +228,12 @@ export const MultiSelect = React.forwardRef<
                     <Badge
                       className={cn(
                         'bg-transparent border-foreground/1 hover:bg-transparent text-foreground',
-                        // isAnimating ? 'animate-bounce' : '',
                         multiSelectVariants({ variant }),
                       )}
                       style={{ animationDuration: `${animation}s` }}
                     >
                       {`+ ${selectedValues.length - maxCount} more`}
-                      <XCircle
+                      <X
                         className="ml-2 h-4 w-4 cursor-pointer"
                         onClick={(event) => {
                           event.stopPropagation();
@@ -356,15 +352,6 @@ export const MultiSelect = React.forwardRef<
             </CommandList>
           </Command>
         </PopoverContent>
-        {/* {animation > 0 && selectedValues.length > 0 && (
-          <WandSparkles
-            className={cn(
-              'my-2 h-3 w-3 cursor-pointer bg-background text-foreground',
-              isAnimating ? '' : 'text-muted-foreground',
-            )}
-            onClick={() => setIsAnimating(!isAnimating)}
-          />
-        )} */}
       </Popover>
     );
   },

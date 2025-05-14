@@ -1,7 +1,6 @@
 'use client';
 import { zodResolver } from '@hookform/resolvers/zod';
 import ArrowBackIcon from '@mui/icons-material/ArrowBackIosNew';
-import { Cat, Dog, Fish, Rabbit, Turtle } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -43,11 +42,11 @@ export default function Page() {
   });
 
   const frameworksList = [
-    { value: 'react', label: 'React', icon: Turtle },
-    { value: 'angular', label: 'Angular', icon: Cat },
-    { value: 'vue', label: 'Vue', icon: Dog },
-    { value: 'svelte', label: 'Svelte', icon: Rabbit },
-    { value: 'ember', label: 'Ember', icon: Fish },
+    { value: 'react', label: 'React' },
+    { value: 'angular', label: 'Angular' },
+    { value: 'vue', label: 'Vue' },
+    { value: 'svelte', label: 'Svelte' },
+    { value: 'ember', label: 'Ember' },
   ];
   const [selectedFrameworks, setSelectedFrameworks] = useState<string[]>([
     'react',
@@ -97,8 +96,8 @@ export default function Page() {
                 options={frameworksList}
                 onValueChange={setSelectedFrameworks}
                 defaultValue={selectedFrameworks}
-                placeholder="Select frameworks"
-                variant="inverted"
+                placeholder="我能提供的服務"
+                variant="primaryAlt"
                 animation={2}
                 maxCount={3}
               />
