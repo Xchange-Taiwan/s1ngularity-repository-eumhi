@@ -43,22 +43,6 @@ export default function Page() {
     defaultValues,
   });
 
-  /*
-export interface InterestType {
-  id: number;
-  category: string;
-  language: string;
-  subject_group: string;
-  subject: string;
-  desc: {
-    desc?: string;
-    icon?: string;
-  };
-}
-
-
-  */
-
   const whatIOfferTopicsList = topics.map((topic) => ({
     value: topic.subject_group,
     label: topic.subject,
