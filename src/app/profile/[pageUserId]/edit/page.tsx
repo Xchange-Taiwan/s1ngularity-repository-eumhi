@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 
+import { totalWorkSpanOptions } from '@/components/onboarding/Steps/constant';
 import { AvatarSection } from '@/components/profile/edit/avatarSection';
 import { EducationSection } from '@/components/profile/edit/educationSection/educationSection';
 import {
@@ -247,12 +248,12 @@ export default function Page({
             />
           </Section>
 
-          <Section title="職務級別">
+          <Section title="經驗">
             <SelectField
               form={form}
               name="seniority"
-              placeholder="請填入您的職務級別"
-              options={[{ label: 'junior', value: 'junior' }]}
+              placeholder="請填入您的經驗"
+              options={totalWorkSpanOptions}
             />
           </Section>
 
