@@ -118,7 +118,7 @@ export default function Page({
             statement: data.personal_statement || '',
             about: data.about || '',
             industry: data.industry?.subject_group || '',
-            seniority: data.seniority_level || '',
+            years_of_experience: data.years_of_experience || '',
             linkedin: '',
             facebook: '',
             instagram: '',
@@ -251,7 +251,7 @@ export default function Page({
           <Section title="經驗">
             <SelectField
               form={form}
-              name="seniority"
+              name="years_of_experience"
               placeholder="請填入您的經驗"
               options={totalWorkSpanOptions}
             />
