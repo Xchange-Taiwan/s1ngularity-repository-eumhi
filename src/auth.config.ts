@@ -33,6 +33,8 @@ export default {
               token: response.data.auth.token,
               onBoarding: response.data.user.onboarding,
               isMentor: response.data.user.is_mentor,
+              name: response.data.user.name,
+              avatar: response.data.user.avatar,
             };
           }
           return { id: response.code, msg: response.msg };
@@ -67,6 +69,8 @@ export default {
             id: response.data.auth.user_id,
             token: response.data.auth.token,
             onBoarding: response.data.user.onboarding,
+            name: response.data.user.name,
+            avatar: response.data.user.avatar,
           };
         }
         return { id: response.code, msg: response.msg };
@@ -74,43 +78,18 @@ export default {
     }),
   ],
   callbacks: {
-    async jwt({ token, user, account, profile }) {
-      if (account) {
-        if (
-          account.provider === 'google' &&
-          profile &&
-          user.onBoarding === undefined
-        ) {
-          token.access_token = account.access_token;
-          token.email = profile.email;
-          token.oauthId = profile.sub;
-          token.avatar = profile.picture;
-          token.name = profile.name;
-        } else if (user) {
-          if (!user.msg) {
-            token.id = user.id as string;
-          }
-          token.token = user.token as string;
-          token.onBoarding = user.onBoarding as boolean;
-          token.msg = user.msg;
-          token.isMentor = user.isMentor;
-        }
-      }
-      return token;
+    async jwt({ token, user }) {
+      return user ? { ...token, ...user } : token;
     },
     async session({ session, token }) {
       session.user = {
         id: token.id as string,
         onBoarding: token.onBoarding as boolean | undefined,
-        email: token.email as string | undefined,
-        oauthId: token.oauthId as string | undefined,
         name: token.name as string | undefined,
         avatar: token.avatar as string | undefined,
-        msg: token.msg as string | undefined,
         isMentor: token.isMentor as boolean | undefined,
       };
       session.accessToken = token.token as string | undefined;
-      session.googleAccessToken = token.access_token as string | undefined;
 
       return session;
     },

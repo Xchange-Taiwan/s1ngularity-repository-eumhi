@@ -1,6 +1,6 @@
 'use client';
 
-// import {userRouter} from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { useEffect, useState } from 'react';
@@ -9,7 +9,7 @@ import { useToast } from '@/components/ui/use-toast';
 
 export default function Page() {
   const searchParams = useSearchParams();
-  // const router = useRouter();
+  const router = useRouter();
   const { toast } = useToast();
 
   const [loading, setLoading] = useState(true);
@@ -27,7 +27,7 @@ export default function Page() {
         title: 'Missing Google OAuth parameters',
         description: 'Authorization failed. Please try again.',
       });
-      // router.push('/auth/signin'); // temporarily disabled
+      router.push('/auth/signin');
       return;
     }
 
