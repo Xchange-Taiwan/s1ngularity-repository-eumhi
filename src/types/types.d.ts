@@ -11,6 +11,7 @@ declare module 'next-auth' {
     name?: string;
     avatar?: string;
     isMentor?: boolean;
+    msg?: string;
   }
 
   /**

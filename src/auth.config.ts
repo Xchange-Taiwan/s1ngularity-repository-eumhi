@@ -43,37 +43,27 @@ export default {
       },
     }),
     CredentialsProvider({
-      id: 'credentials-google-oauth',
+      id: 'custom-google-token',
       credentials: {
-        access_token: { label: 'Google Access Token', type: 'text' },
-        oauth_id: { label: 'OAuth Id', type: 'text' },
-        language: { label: 'Language', type: 'text' },
+        token: { label: 'Token', type: 'text' },
+        user: { label: 'User JSON', type: 'text' },
       },
       async authorize(credentials) {
-        const { access_token, oauth_id, language } = credentials ?? {};
-        if (!access_token || !oauth_id) return null;
+        if (!credentials?.token || !credentials?.user) return null;
+        const user = JSON.parse(credentials.user as string);
 
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/v1/oauth/login/GOOGLE?language=${language}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ access_token, oauth_id }),
-          },
-        );
-
-        const response = await res.json();
-
-        if (res.ok && response.data) {
+        if (user) {
           return {
-            id: response.data.auth.user_id,
-            token: response.data.auth.token,
-            onBoarding: response.data.user.onboarding,
-            name: response.data.user.name,
-            avatar: response.data.user.avatar,
+            id: user.user_id,
+            token: credentials.token as string,
+            name: user.name,
+            avatar: user.avatar,
+            isMentor: user.is_mentor,
+            onBoarding: user.onboarding,
           };
+        } else {
+          return null;
         }
-        return { id: response.code, msg: response.msg };
       },
     }),
   ],
@@ -88,6 +78,7 @@ export default {
         name: token.name as string | undefined,
         avatar: token.avatar as string | undefined,
         isMentor: token.isMentor as boolean | undefined,
+        msg: token.msg as string | undefined,
       };
       session.accessToken = token.token as string | undefined;
 
