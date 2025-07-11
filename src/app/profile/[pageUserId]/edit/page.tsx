@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
 import { getSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import * as z from 'zod';
 
 import { totalWorkSpanOptions } from '@/components/onboarding/Steps/constant';
@@ -32,7 +32,7 @@ import useIndustries from '@/hooks/user/industry/useIndustries';
 import useInterests from '@/hooks/user/interests/useInterests';
 import { fetchUser } from '@/services/user/user';
 
-const onSubmit = (values: z.infer<typeof formSchema>) => {
+const onSubmit = async (values: z.infer<typeof formSchema>) => {
   console.log(values);
 };
 
@@ -100,12 +100,6 @@ export default function Page({
     label: skill.subject,
   }));
 
-  const [selectedWhatIOffer, setSelectedWhatIOffer] = useState<string[]>([]);
-  const [selectedExpertised, setSelectedExpertised] = useState<string[]>([]);
-  const [interestedPosition, setInterestedPosition] = useState<string[]>([]);
-  const [interestedSkills, setInterestedSkills] = useState<string[]>([]);
-  const [interestedTopics, setInterestedTopics] = useState<string[]>([]);
-
   useEffect(() => {
     async function fetchUserData() {
       try {
@@ -138,20 +132,25 @@ export default function Page({
             educations: defaultValues.educations,
           });
 
-          setSelectedWhatIOffer(
+          form.setValue(
+            'what_i_offer',
             data.topics?.interests?.map((i) => i.subject_group) || [],
           );
-          setSelectedExpertised(
+          form.setValue(
+            'expertised',
             data.skills?.interests?.map((i) => i.subject_group) || [],
           );
-          setInterestedPosition(
+          form.setValue(
+            'interested_positions',
             data.interested_positions?.interests?.map((i) => i.subject_group) ||
               [],
           );
-          setInterestedSkills(
+          form.setValue(
+            'interested_skills',
             data.skills?.interests?.map((i) => i.subject_group) || [],
           );
-          setInterestedTopics(
+          form.setValue(
+            'interested_topics',
             data.topics?.interests?.map((i) => i.subject_group) || [],
           );
         }
@@ -190,15 +189,21 @@ export default function Page({
             取消
           </Button>
           <Button
+            type="submit"
             variant="default"
             className="grow rounded-full px-6 py-3 sm:grow-0"
+            form="edit-profile-form"
           >
             儲存
           </Button>
         </div>
       </div>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10">
+        <form
+          id="edit-profile-form"
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="space-y-10"
+        >
           <AvatarSection
             control={form.control}
             name="avatarFile"
@@ -210,28 +215,38 @@ export default function Page({
 
           {isMentor && (
             <Section title="*我能提供的服務">
-              <MultiSelect
-                options={whatIOfferTopicsList}
-                onValueChange={setSelectedWhatIOffer}
-                defaultValue={selectedWhatIOffer}
-                placeholder="我能提供的服務"
-                variant="primaryAlt"
-                animation={2}
-                maxCount={3}
+              <Controller
+                control={form.control}
+                name="what_i_offer"
+                render={({ field }) => (
+                  <MultiSelect
+                    {...field}
+                    options={whatIOfferTopicsList}
+                    placeholder="我能提供的服務"
+                    variant="primaryAlt"
+                    animation={2}
+                    maxCount={3}
+                  />
+                )}
               />
             </Section>
           )}
 
           {isMentor && (
             <Section title="*專業能力">
-              <MultiSelect
-                options={expertisedList}
-                onValueChange={setSelectedExpertised}
-                defaultValue={selectedExpertised}
-                placeholder="專業能力"
-                variant="primaryAlt"
-                animation={2}
-                maxCount={3}
+              <Controller
+                control={form.control}
+                name="expertised"
+                render={({ field }) => (
+                  <MultiSelect
+                    {...field}
+                    options={expertisedList}
+                    placeholder="專業能力"
+                    variant="primaryAlt"
+                    animation={2}
+                    maxCount={3}
+                  />
+                )}
               />
             </Section>
           )}
@@ -274,41 +289,53 @@ export default function Page({
           </Section>
 
           <Section title="有興趣多了解的職位">
-            <MultiSelect
-              options={interestedPositionList}
-              onValueChange={setInterestedPosition}
-              defaultValue={interestedPosition}
-              value={interestedPosition}
-              placeholder="有興趣多了解的職位"
-              variant="primaryAlt"
-              animation={2}
-              maxCount={3}
+            <Controller
+              control={form.control}
+              name="interested_positions"
+              render={({ field }) => (
+                <MultiSelect
+                  {...field}
+                  options={interestedPositionList}
+                  placeholder="有興趣多了解的職位"
+                  variant="primaryAlt"
+                  animation={2}
+                  maxCount={3}
+                />
+              )}
             />
           </Section>
 
           <Section title="想多了解、加強的技能">
-            <MultiSelect
-              options={interestedSkillsList}
-              onValueChange={setInterestedSkills}
-              defaultValue={interestedSkills}
-              value={interestedSkills}
-              placeholder="想多了解、加強的技能"
-              variant="primaryAlt"
-              animation={2}
-              maxCount={3}
+            <Controller
+              control={form.control}
+              name="interested_skills"
+              render={({ field }) => (
+                <MultiSelect
+                  {...field}
+                  options={interestedSkillsList}
+                  placeholder="想多了解、加強的技能"
+                  variant="primaryAlt"
+                  animation={2}
+                  maxCount={3}
+                />
+              )}
             />
           </Section>
 
           <Section title="想多了解的主題">
-            <MultiSelect
-              options={interestedTopicsList}
-              onValueChange={setInterestedTopics}
-              defaultValue={interestedTopics}
-              value={interestedTopics}
-              placeholder="想多了解的主題"
-              variant="primaryAlt"
-              animation={2}
-              maxCount={3}
+            <Controller
+              control={form.control}
+              name="interested_topics"
+              render={({ field }) => (
+                <MultiSelect
+                  {...field}
+                  options={interestedTopicsList}
+                  placeholder="想多了解的主題"
+                  variant="primaryAlt"
+                  animation={2}
+                  maxCount={3}
+                />
+              )}
             />
           </Section>
 

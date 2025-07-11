@@ -143,6 +143,7 @@ export default function Page() {
         allData.avatarFile = undefined;
       }
       const validatedData = formSchema.parse(allData);
+      console.log(validatedData);
       await updateProfile(validatedData);
 
       router.push('/profile/card');
