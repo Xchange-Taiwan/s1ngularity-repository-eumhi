@@ -20,7 +20,7 @@ import { JobExperienceSection } from '@/components/profile/edit/jobExperienceSec
 import { LinksSection } from '@/components/profile/edit/linkSection';
 import {
   defaultValues,
-  formSchema,
+  profileFormSchema,
   ProfileFormValues,
 } from '@/components/profile/edit/profileSchema';
 import { Section } from '@/components/profile/edit/section';
@@ -30,10 +30,13 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import useLocations from '@/hooks/user/country/useLocations';
 import useIndustries from '@/hooks/user/industry/useIndustries';
 import useInterests from '@/hooks/user/interests/useInterests';
-import { fetchUser } from '@/services/user/user';
+import { updateProfile } from '@/services/profile/updateProfile';
+import { fetchUser } from '@/services/profile/user';
 
-const onSubmit = async (values: z.infer<typeof formSchema>) => {
+const onSubmit = async (values: z.infer<typeof profileFormSchema>) => {
   console.log(values);
+
+  updateProfile(values);
 };
 
 export default function Page({
@@ -71,7 +74,7 @@ export default function Page({
   const { interestedPositions, skills, topics } = useInterests('zh_TW');
 
   const { ...form } = useForm<ProfileFormValues>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(profileFormSchema),
     defaultValues,
   });
 
@@ -108,7 +111,7 @@ export default function Page({
           form.reset({
             avatarFile: undefined,
             name: data.name || '',
-            region: data.location || '',
+            location: data.location || '',
             statement: data.personal_statement || '',
             about: data.about || '',
             industry: data.industry?.subject_group || '',
@@ -146,11 +149,11 @@ export default function Page({
               [],
           );
           form.setValue(
-            'interested_skills',
+            'skills',
             data.skills?.interests?.map((i) => i.subject_group) || [],
           );
           form.setValue(
-            'interested_topics',
+            'topics',
             data.topics?.interests?.map((i) => i.subject_group) || [],
           );
         }
@@ -254,7 +257,7 @@ export default function Page({
           <Section title="地區">
             <SelectField
               form={form}
-              name="region"
+              name="location"
               placeholder="請選擇地區"
               options={locations.map((loc) => ({
                 value: loc.value,
@@ -308,7 +311,7 @@ export default function Page({
           <Section title="想多了解、加強的技能">
             <Controller
               control={form.control}
-              name="interested_skills"
+              name="skills"
               render={({ field }) => (
                 <MultiSelect
                   {...field}
@@ -325,7 +328,7 @@ export default function Page({
           <Section title="想多了解的主題">
             <Controller
               control={form.control}
-              name="interested_topics"
+              name="topics"
               render={({ field }) => (
                 <MultiSelect
                   {...field}

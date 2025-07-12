@@ -21,10 +21,10 @@ const jobSchema = z.object({
   description: z.string(),
 });
 
-export const formSchema = z.object({
+export const profileFormSchema = z.object({
   avatarFile: z.instanceof(File).optional(),
   name: z.string().min(1, '請輸入姓名').max(20, '最多不可超過 20 字'),
-  region: z.string({ required_error: '請選擇地區' }),
+  location: z.string({ required_error: '請選擇地區' }),
   statement: z.string(),
   about: z.string(),
   industry: z.string(),
@@ -40,16 +40,16 @@ export const formSchema = z.object({
   what_i_offer: z.array(z.string()),
   expertised: z.array(z.string()),
   interested_positions: z.array(z.string()).min(1, '請至少選擇一個職位'),
-  interested_skills: z.array(z.string()).min(1, '請至少選擇一個職位'),
-  interested_topics: z.array(z.string()).min(1, '請至少選擇一個職位'),
+  skills: z.array(z.string()).min(1, '請至少選擇一個技能'),
+  topics: z.array(z.string()).min(1, '請至少選擇一個主題'),
 });
 
-export type ProfileFormValues = z.infer<typeof formSchema>;
+export type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 export const defaultValues: ProfileFormValues = {
   avatarFile: undefined,
   name: '',
-  region: '',
+  location: '',
   statement: '',
   about: '',
   industry: '',
@@ -65,6 +65,6 @@ export const defaultValues: ProfileFormValues = {
   what_i_offer: [],
   expertised: [],
   interested_positions: [],
-  interested_skills: [],
-  interested_topics: [],
+  skills: [],
+  topics: [],
 };
