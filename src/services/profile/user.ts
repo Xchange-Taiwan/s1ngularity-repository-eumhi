@@ -1,5 +1,6 @@
 import { getSession } from 'next-auth/react';
 
+import { ExpertiseType } from './expertises';
 import { IndustryType } from './industries';
 import { InterestType } from './interests';
 
@@ -35,7 +36,8 @@ export interface UserType {
   about?: string;
   seniority_level?: string;
   expertises?: {
-    professions: string[];
+    professions: ExpertiseType[];
+    language: string | null;
   };
   experiences?: ExperienceType[];
 }

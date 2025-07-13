@@ -28,6 +28,7 @@ import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { MultiSelect } from '@/components/ui/multi-select';
 import useLocations from '@/hooks/user/country/useLocations';
+import useExpertises from '@/hooks/user/expertises/useExpertises';
 import useIndustries from '@/hooks/user/industry/useIndustries';
 import useInterests from '@/hooks/user/interests/useInterests';
 import { updateProfile } from '@/services/profile/updateProfile';
@@ -72,6 +73,7 @@ export default function Page({
   const { locations } = useLocations('zh_TW');
   const { industries } = useIndustries('zh_TW');
   const { interestedPositions, skills, topics } = useInterests('zh_TW');
+  const { expertises } = useExpertises('zh_TW');
 
   const { ...form } = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -83,9 +85,9 @@ export default function Page({
     label: topic.subject,
   }));
 
-  const expertisedList = skills.map((skill) => ({
-    value: skill.subject_group,
-    label: skill.subject,
+  const expertisedList = expertises.map((expertise) => ({
+    value: expertise.subject_group,
+    label: expertise.subject,
   }));
 
   const interestedPositionList = interestedPositions.map((skill) => ({
@@ -122,7 +124,7 @@ export default function Page({
             twitter: '',
             youtube: '',
             website: '',
-            jobs:
+            experiences:
               data.experiences?.map(() => ({
                 job: '',
                 company: '',
@@ -131,7 +133,7 @@ export default function Page({
                 industry: '',
                 jobLocation: '',
                 description: '',
-              })) || defaultValues.jobs,
+              })) || defaultValues.experiences,
             educations: defaultValues.educations,
           });
 
@@ -140,8 +142,8 @@ export default function Page({
             data.topics?.interests?.map((i) => i.subject_group) || [],
           );
           form.setValue(
-            'expertised',
-            data.skills?.interests?.map((i) => i.subject_group) || [],
+            'expertises',
+            data.expertises?.professions?.map((i) => i.subject_group) || [],
           );
           form.setValue(
             'interested_positions',
@@ -239,7 +241,7 @@ export default function Page({
             <Section title="*專業能力">
               <Controller
                 control={form.control}
-                name="expertised"
+                name="expertises"
                 render={({ field }) => (
                   <MultiSelect
                     {...field}
