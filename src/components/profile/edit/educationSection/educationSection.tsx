@@ -53,6 +53,7 @@ export const EducationSection = ({ form }: Props) => {
     }
 
     append({
+      id: -1,
       subject: '',
       school: '',
       educationPeriodStart: '',

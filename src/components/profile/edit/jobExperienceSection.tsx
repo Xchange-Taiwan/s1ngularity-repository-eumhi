@@ -48,7 +48,7 @@ export const JobExperienceSection = ({
 
   const { fields, append, remove } = useFieldArray({
     control,
-    name: 'experiences',
+    name: 'work_experiences',
   });
 
   const currentYear = new Date().getFullYear();
@@ -57,7 +57,7 @@ export const JobExperienceSection = ({
   );
 
   const addJob = () => {
-    const experiences = getValues('experiences');
+    const experiences = getValues('work_experiences');
     const last = experiences?.at(-1);
     if (
       experiences.length &&
@@ -71,6 +71,7 @@ export const JobExperienceSection = ({
     }
 
     append({
+      id: -1,
       job: '',
       company: '',
       jobPeriodStart: '',
@@ -89,7 +90,7 @@ export const JobExperienceSection = ({
           <div className="mb-6 gap-6 md:flex">
             <FormField
               control={control}
-              name={`experiences.${index}.job`}
+              name={`work_experiences.${index}.job`}
               render={({ field }) => (
                 <FormItem className="mb-4 grow md:mb-0">
                   <FormLabel>職稱</FormLabel>
@@ -102,7 +103,7 @@ export const JobExperienceSection = ({
             />
             <FormField
               control={control}
-              name={`experiences.${index}.company`}
+              name={`work_experiences.${index}.company`}
               render={({ field }) => (
                 <FormItem className="grow">
                   <FormLabel>公司名稱</FormLabel>
@@ -119,7 +120,7 @@ export const JobExperienceSection = ({
           <div className="mb-6 gap-2 md:flex">
             <FormField
               control={control}
-              name={`experiences.${index}.jobPeriodStart`}
+              name={`work_experiences.${index}.jobPeriodStart`}
               render={({ field }) => (
                 <FormItem className="mb-4 grow basis-1/2 md:mb-0">
                   <FormLabel>開始年份</FormLabel>
@@ -152,7 +153,7 @@ export const JobExperienceSection = ({
             </p>
             <FormField
               control={control}
-              name={`experiences.${index}.jobPeriodEnd`}
+              name={`work_experiences.${index}.jobPeriodEnd`}
               render={({ field }) => (
                 <FormItem className="grow basis-1/2">
                   <FormLabel className="invisible md:visible">&nbsp;</FormLabel>
@@ -186,7 +187,7 @@ export const JobExperienceSection = ({
               <FormLabel>產業</FormLabel>
               <SelectField
                 form={form}
-                name={`experiences.${index}.industry`}
+                name={`work_experiences.${index}.industry`}
                 placeholder="請選擇產業"
                 options={industries.map((i) => ({
                   value: i.subject_group,
@@ -199,7 +200,7 @@ export const JobExperienceSection = ({
               <FormLabel>地點</FormLabel>
               <SelectField
                 form={form}
-                name={`experiences.${index}.jobLocation`}
+                name={`work_experiences.${index}.jobLocation`}
                 placeholder="請選擇地區"
                 options={locations.map((loc) => ({
                   value: loc.value,
@@ -212,7 +213,7 @@ export const JobExperienceSection = ({
           {/* Description */}
           <FormField
             control={control}
-            name={`experiences.${index}.description`}
+            name={`work_experiences.${index}.description`}
             render={({ field }) => (
               <FormItem className="mb-6">
                 <FormLabel>描述</FormLabel>

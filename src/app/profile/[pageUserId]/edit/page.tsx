@@ -20,6 +20,9 @@ import { JobExperienceSection } from '@/components/profile/edit/jobExperienceSec
 import { LinksSection } from '@/components/profile/edit/linkSection';
 import {
   defaultValues,
+  educationSchema,
+  jobSchema,
+  personLinkSchema,
   profileFormSchema,
   ProfileFormValues,
 } from '@/components/profile/edit/profileSchema';
@@ -31,14 +34,41 @@ import useLocations from '@/hooks/user/country/useLocations';
 import useExpertises from '@/hooks/user/expertises/useExpertises';
 import useIndustries from '@/hooks/user/industry/useIndustries';
 import useInterests from '@/hooks/user/interests/useInterests';
+import { deleteExperience } from '@/services/profile/deleteExperience';
+import { ExperienceType } from '@/services/profile/experienceType';
 import { updateProfile } from '@/services/profile/updateProfile';
+import {
+  MentorExperiencePayload,
+  upsertMentorExperience,
+} from '@/services/profile/upsertExperience';
 import { fetchUser } from '@/services/profile/user';
 
-const onSubmit = async (values: z.infer<typeof profileFormSchema>) => {
-  console.log(values);
+type EducationFormValue = z.infer<typeof educationSchema>;
+type WorkExperienceFormValue = z.infer<typeof jobSchema>;
+type PersonLinkFormValue = z.infer<typeof personLinkSchema>;
 
-  updateProfile(values);
+type BaseExperience = {
+  id: number;
 };
+
+function diffExperienceArray<T extends BaseExperience>(
+  oldData: T[],
+  newData: T[],
+) {
+  const oldMap = new Map(oldData.map((item) => [item.id, item]));
+  const newMap = new Map(newData.map((item) => [item.id, item]));
+
+  const toDelete = oldData.filter((old) => !newMap.has(old.id));
+  const toCreate = newData.filter((item) => item.id === -1);
+  const toUpdate = newData.filter((item) => {
+    const old = oldMap.get(item.id);
+    return (
+      item.id !== -1 && old && JSON.stringify(old) !== JSON.stringify(item)
+    );
+  });
+
+  return { toDelete, toCreate, toUpdate };
+}
 
 export default function Page({
   params: { pageUserId },
@@ -51,6 +81,13 @@ export default function Page({
 
   const searchParams = useSearchParams();
   const isOnboarding = searchParams?.get('onboarding') === 'true';
+
+  const [originalWorkExperiences, setOriginalWorkExperiences] = useState<
+    WorkExperienceFormValue[]
+  >([]);
+  const [originalEducations, setOriginalEducations] = useState<
+    EducationFormValue[]
+  >([]);
 
   useEffect(() => {
     const verifyUser = async () => {
@@ -105,11 +142,97 @@ export default function Page({
     label: skill.subject,
   }));
 
+  function parseLinks(
+    experiences: MentorExperiencePayload[],
+  ): Partial<
+    Record<
+      'linkedin' | 'facebook' | 'instagram' | 'twitter' | 'youtube' | 'website',
+      PersonLinkFormValue
+    >
+  > {
+    const result: Partial<
+      Record<
+        | 'linkedin'
+        | 'facebook'
+        | 'instagram'
+        | 'twitter'
+        | 'youtube'
+        | 'website',
+        PersonLinkFormValue
+      >
+    > = {};
+
+    experiences
+      ?.filter((e) => e.category === 'LINK')
+      .forEach((e) => {
+        const metadata =
+          e.mentor_experiences_metadata as Partial<PersonLinkFormValue>;
+        const platform = metadata.platform as keyof typeof result;
+        const url = metadata.url || '';
+        const id = e.id ?? -1;
+
+        if (
+          platform &&
+          [
+            'linkedin',
+            'facebook',
+            'instagram',
+            'twitter',
+            'youtube',
+            'website',
+          ].includes(platform)
+        ) {
+          result[platform] = {
+            id,
+            platform,
+            url,
+          };
+        }
+      });
+
+    return result;
+  }
+
   useEffect(() => {
     async function fetchUserData() {
       try {
         const data = await fetchUser('zh_TW');
         if (data) {
+          const parsedExperiences = data.experiences
+            ?.filter((e) => e.category === 'WORK')
+            .map((e): WorkExperienceFormValue => {
+              const metadata =
+                e.mentor_experiences_metadata as Partial<WorkExperienceFormValue>;
+              return {
+                id: e.id || -1,
+                job: metadata.job || '',
+                company: metadata.company || '',
+                jobPeriodStart: metadata.jobPeriodStart || '',
+                jobPeriodEnd: metadata.jobPeriodEnd || '',
+                industry: metadata.industry || '',
+                jobLocation: metadata.jobLocation || '',
+                description: metadata.description || '',
+              };
+            });
+
+          const parsedEducations = data.experiences
+            ?.filter((e) => e.category === 'EDUCATION')
+            .map((e): EducationFormValue => {
+              const metadata =
+                e.mentor_experiences_metadata as Partial<EducationFormValue>;
+              return {
+                id: e.id || -1,
+                school: metadata.school || '',
+                subject: metadata.subject || '',
+                educationPeriodStart: metadata.educationPeriodStart || '',
+                educationPeriodEnd: metadata.educationPeriodEnd || '',
+              };
+            });
+
+          const parsedLinks = parseLinks(
+            data.experiences as unknown as MentorExperiencePayload[],
+          );
+
           form.reset({
             avatarFile: undefined,
             name: data.name || '',
@@ -118,24 +241,19 @@ export default function Page({
             about: data.about || '',
             industry: data.industry?.subject_group || '',
             years_of_experience: data.years_of_experience || '',
-            linkedin: '',
-            facebook: '',
-            instagram: '',
-            twitter: '',
-            youtube: '',
-            website: '',
-            experiences:
-              data.experiences?.map(() => ({
-                job: '',
-                company: '',
-                jobPeriodStart: '',
-                jobPeriodEnd: '',
-                industry: '',
-                jobLocation: '',
-                description: '',
-              })) || defaultValues.experiences,
-            educations: defaultValues.educations,
+            linkedin: parsedLinks.linkedin || defaultValues.linkedin,
+            facebook: parsedLinks.facebook || defaultValues.facebook,
+            instagram: parsedLinks.instagram || defaultValues.instagram,
+            twitter: parsedLinks.twitter || defaultValues.twitter,
+            youtube: parsedLinks.youtube || defaultValues.youtube,
+            website: parsedLinks.website || defaultValues.website,
+            work_experiences:
+              parsedExperiences || defaultValues.work_experiences,
+            educations: parsedEducations || defaultValues.educations,
           });
+
+          setOriginalWorkExperiences(parsedExperiences || []);
+          setOriginalEducations(parsedEducations || []);
 
           form.setValue(
             'what_i_offer',
@@ -173,6 +291,140 @@ export default function Page({
 
   const handleGoToPrev = () => {
     router.push(`/profile/${pageUserId}`);
+  };
+
+  const onSubmit = async (values: z.infer<typeof profileFormSchema>) => {
+    console.log(values);
+
+    updateProfile(values);
+
+    const {
+      toDelete: workToDelete,
+      toCreate: workToCreate,
+      toUpdate: workToUpdate,
+    } = diffExperienceArray(originalWorkExperiences, values.work_experiences);
+
+    await Promise.all(
+      workToDelete.map((item) =>
+        deleteExperience(ExperienceType.WORK, item.id, true),
+      ),
+    );
+    await Promise.all(
+      workToCreate.map((item, idx) =>
+        upsertMentorExperience(ExperienceType.WORK, true, {
+          category: ExperienceType.WORK,
+          mentor_experiences_metadata: {
+            job: item.job,
+            company: item.company,
+            jobPeriodStart: item.jobPeriodStart,
+            jobPeriodEnd: item.jobPeriodEnd,
+            industry: item.industry,
+            jobLocation: item.jobLocation,
+            description: item.description,
+          },
+          order: idx,
+        }),
+      ),
+    );
+    await Promise.all(
+      workToUpdate.map((item, idx) =>
+        upsertMentorExperience(ExperienceType.WORK, true, {
+          id: item.id,
+          category: ExperienceType.WORK,
+          mentor_experiences_metadata: {
+            job: item.job,
+            company: item.company,
+            jobPeriodStart: item.jobPeriodStart,
+            jobPeriodEnd: item.jobPeriodEnd,
+            industry: item.industry,
+            jobLocation: item.jobLocation,
+            description: item.description,
+          },
+          order: idx,
+        }),
+      ),
+    );
+
+    const {
+      toDelete: eduToDelete,
+      toCreate: eduToCreate,
+      toUpdate: eduToUpdate,
+    } = diffExperienceArray(originalEducations, values.educations);
+
+    await Promise.all(
+      eduToDelete.map((item) =>
+        deleteExperience(ExperienceType.EDUCATION, item.id, true),
+      ),
+    );
+    await Promise.all(
+      eduToCreate.map((item, idx) =>
+        upsertMentorExperience(ExperienceType.EDUCATION, true, {
+          category: ExperienceType.EDUCATION,
+          mentor_experiences_metadata: {
+            school: item.school,
+            subject: item.subject,
+            educationPeriodStart: item.educationPeriodStart,
+            educationPeriodEnd: item.educationPeriodEnd,
+          },
+          order: idx,
+        }),
+      ),
+    );
+    await Promise.all(
+      eduToUpdate.map((item, idx) =>
+        upsertMentorExperience(ExperienceType.EDUCATION, true, {
+          id: item.id,
+          category: ExperienceType.EDUCATION,
+          mentor_experiences_metadata: {
+            school: item.school,
+            subject: item.subject,
+            educationPeriodStart: item.educationPeriodStart,
+            educationPeriodEnd: item.educationPeriodEnd,
+          },
+          order: idx,
+        }),
+      ),
+    );
+
+    const links = [
+      values.linkedin,
+      values.facebook,
+      values.instagram,
+      values.twitter,
+      values.youtube,
+      values.website,
+    ];
+
+    await Promise.all(
+      links.map((link, idx) => {
+        const metadata = {
+          platform: link.platform,
+          url: link.url,
+        };
+
+        const payload: MentorExperiencePayload = {
+          category: ExperienceType.LINK,
+          mentor_experiences_metadata: metadata,
+          order: idx,
+        };
+
+        // 如果沒有填 url 而且是舊資料（有 id），就刪除
+        if (!link.url && link.id !== -1) {
+          return deleteExperience(ExperienceType.LINK, link.id, true);
+        }
+
+        // 有填 url，就 upsert
+        if (link.url) {
+          if (link.id !== -1) {
+            payload.id = link.id;
+          }
+          return upsertMentorExperience(ExperienceType.LINK, isMentor, payload);
+        }
+
+        // 全新空白 link，什麼都不做
+        return Promise.resolve();
+      }),
+    );
   };
 
   return (
