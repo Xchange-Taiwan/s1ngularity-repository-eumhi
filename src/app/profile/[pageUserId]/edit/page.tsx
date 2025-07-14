@@ -204,7 +204,7 @@ export default function Page({
               const metadata =
                 e.mentor_experiences_metadata as Partial<WorkExperienceFormValue>;
               return {
-                id: e.id || -1,
+                id: typeof e.id === 'number' ? e.id : -1,
                 job: metadata.job || '',
                 company: metadata.company || '',
                 jobPeriodStart: metadata.jobPeriodStart || '',
@@ -221,7 +221,7 @@ export default function Page({
               const metadata =
                 e.mentor_experiences_metadata as Partial<EducationFormValue>;
               return {
-                id: e.id || -1,
+                id: typeof e.id === 'number' ? e.id : -1,
                 school: metadata.school || '',
                 subject: metadata.subject || '',
                 educationPeriodStart: metadata.educationPeriodStart || '',
