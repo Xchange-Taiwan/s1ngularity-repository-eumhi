@@ -43,6 +43,18 @@ export default function Page() {
       })?.mentor_experiences_metadata as { url?: string } | undefined
     )?.url || '';
 
+  const firstWorkExperience = userData?.experiences?.find(
+    (exp) => (exp.category as string) === 'WORK',
+  );
+
+  const metadata = firstWorkExperience?.mentor_experiences_metadata as {
+    company?: string;
+    job?: string;
+  };
+
+  const firstWorkExperienceCompany = metadata?.company || '';
+  const firstWorkExperienceTitle = metadata?.job || '';
+
   if (!userData) {
     return null;
   }
@@ -68,8 +80,8 @@ export default function Page() {
           <ProfileCard
             name={userData.name}
             avatarImgUrl={userData.avatar}
-            company={userData.company}
-            jobTitle={userData.job_title}
+            company={firstWorkExperienceCompany}
+            jobTitle={firstWorkExperienceTitle}
             linkedinUrl={linkedInUrl}
             interestedRole={userData.interested_positions.interests}
             skillEnhancementTarget={userData.skills.interests}
@@ -80,8 +92,8 @@ export default function Page() {
           <ProfileCard
             name={userData.name}
             avatarImgUrl={userData.avatar}
-            company={userData.company}
-            jobTitle={userData.job_title}
+            company={firstWorkExperienceCompany}
+            jobTitle={firstWorkExperienceTitle}
             linkedinUrl={linkedInUrl}
             expertise={userData.expertises?.professions}
           />
