@@ -131,7 +131,11 @@ export default function Page({
             {isMentor && (
               <div className="mt-10">
                 <p className="mb-4 text-xl font-bold">專業能力</p>
-                <Badge variant={'primaryAlt'}>空格</Badge>
+                {userData?.expertises?.professions?.map((i) => (
+                  <Badge variant={'primaryAlt'} key={i.subject_group}>
+                    {i.subject_group}
+                  </Badge>
+                ))}
               </div>
             )}
 
@@ -144,23 +148,38 @@ export default function Page({
 
             <div className="mt-10">
               <p className="mb-4 text-xl font-bold">專長領域</p>
-
-              <Badge variant={'primaryAlt'}>空格</Badge>
+              {userData?.expertises?.professions?.map((i) => (
+                <Badge variant={'primaryAlt'} key={i.subject_group}>
+                  {i.subject_group}
+                </Badge>
+              ))}
             </div>
 
             <div className="mt-10">
               <p className="mb-4 text-xl font-bold">有興趣的職位</p>
-              <Badge variant={'primaryAlt'}>空格</Badge>
+              {userData?.interested_positions?.interests?.map((i) => (
+                <Badge variant={'primaryAlt'} key={i.subject_group}>
+                  {i.subject_group}
+                </Badge>
+              ))}
             </div>
 
             <div className="mt-10">
               <p className="mb-4 text-xl font-bold">有興趣的技能</p>
-              <Badge variant={'primaryAlt'}>空格</Badge>
+              {userData?.skills?.interests?.map((i) => (
+                <Badge variant={'primaryAlt'} key={i.subject_group}>
+                  {i.subject_group}
+                </Badge>
+              ))}
             </div>
 
             <div className="mt-10">
               <p className="mb-4 text-xl font-bold">有興趣的主題</p>
-              <Badge variant={'primaryAlt'}>空格</Badge>
+              {userData?.topics?.interests?.map((i) => (
+                <Badge variant={'primaryAlt'} key={i.subject_group}>
+                  {i.subject_group}
+                </Badge>
+              ))}
             </div>
 
             <div className="mt-10">
