@@ -13,44 +13,6 @@ import { Button } from '@/components/ui/button';
 import { fetchUser } from '@/services/profile/user';
 import { UserType } from '@/services/profile/user';
 
-const workItems = [
-  {
-    title: 'Strategy Consultant',
-    subtitle: 'BrightPath Consulting',
-    description: 'Mentored startups focusing on innovation and growth.',
-    startDate: '2016',
-    endDate: 'Present',
-  },
-  {
-    title: 'Strategy Consultant',
-    subtitle: 'BrightPath Consulting',
-    description: 'Mentored startups focusing on innovation and growth.',
-    startDate: '2016',
-    endDate: 'Present',
-  },
-];
-
-export const educationItems = [
-  {
-    title: 'Master of Business Administration (MBA)',
-    subtitle: 'University of Toronto, Rotman School of Management',
-    startDate: '2018',
-    endDate: '2020',
-  },
-  {
-    title: 'Bachelor of Computer Science',
-    subtitle: 'University of British Columbia',
-    startDate: '2013',
-    endDate: '2017',
-  },
-  {
-    title: 'Certificate in UX Design',
-    subtitle: 'Coursera / Google UX Design Program',
-    startDate: '2021',
-    endDate: '2022',
-  },
-];
-
 export default function Page({
   params: { pageUserId },
 }: {
@@ -102,6 +64,48 @@ export default function Page({
   const firstWorkExperienceCompany = metadata?.company || '';
   const firstWorkExperienceTitle = metadata?.job || '';
 
+  const parsedExperiences =
+    userData?.experiences
+      ?.filter((e) => e.category === 'WORK')
+      .map((e) => {
+        const metadata = e.mentor_experiences_metadata as {
+          job?: string;
+          company?: string;
+          jobPeriodStart?: string;
+          jobPeriodEnd?: string;
+          description?: string;
+        };
+        return {
+          title: metadata.job || '',
+          subtitle: metadata.company || '',
+          description: metadata.description || '',
+          startDate: metadata.jobPeriodStart || '',
+          endDate: metadata.jobPeriodEnd || '',
+        };
+      }) || [];
+
+  const parsedEducations =
+    userData?.experiences
+      ?.filter((e) => e.category === 'EDUCATION')
+      .map((e) => {
+        const metadata = e.mentor_experiences_metadata as {
+          school?: string;
+          subject?: string;
+          educationPeriodStart?: string;
+          educationPeriodEnd?: string;
+        };
+        return {
+          title: metadata.subject || '',
+          subtitle: metadata.school || '',
+          startDate: metadata.educationPeriodStart || '',
+          endDate: metadata.educationPeriodEnd || '',
+        };
+      }) || [];
+
+  if (!userData) {
+    return null;
+  }
+
   return (
     <div>
       <div className="relative h-[111px] bg-gradient-to-br from-[#92e7e7] to-[#e7a0d4] sm:h-[100px]" />
@@ -114,9 +118,7 @@ export default function Page({
                 src={userData?.avatar || DefaultAvatarImgUrl}
                 alt={'Avatar of ' + userData?.name}
                 fill
-                style={{
-                  objectFit: 'contain',
-                }}
+                style={{ objectFit: 'contain' }}
               />
             </div>
 
@@ -139,7 +141,7 @@ export default function Page({
             {isLogging && pageUserId === loginUserId && (
               <Button
                 variant="outline"
-                className="grow rounded-full px-6  py-3 sm:grow-0"
+                className="grow rounded-full px-6 py-3 sm:grow-0"
                 onClick={() => router.push(`/profile/${pageUserId}/edit`)}
               >
                 編輯個人資訊
@@ -233,11 +235,12 @@ export default function Page({
 
             <div className="mt-10">
               <p className="mb-4 text-xl font-bold">工作經驗</p>
-              <ExperienceSection items={workItems} />
+              <ExperienceSection items={parsedExperiences} />
             </div>
+
             <div className="mt-10">
               <p className="mb-4 text-xl font-bold">教育</p>
-              <ExperienceSection items={educationItems} />
+              <ExperienceSection items={parsedEducations} />
             </div>
           </div>
 
