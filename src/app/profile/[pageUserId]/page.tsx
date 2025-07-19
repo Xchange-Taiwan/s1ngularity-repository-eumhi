@@ -7,10 +7,49 @@ import { useEffect, useState } from 'react';
 
 import DefaultAvatarImgUrl from '@/assets/default-avatar.jpeg';
 import { LinkedinColor } from '@/components/Icon';
+import { ExperienceSection } from '@/components/profile/ExperienceSection/ExperienceSection';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { fetchUser } from '@/services/profile/user';
 import { UserType } from '@/services/profile/user';
+
+const workItems = [
+  {
+    title: 'Strategy Consultant',
+    subtitle: 'BrightPath Consulting',
+    description: 'Mentored startups focusing on innovation and growth.',
+    startDate: '2016',
+    endDate: 'Present',
+  },
+  {
+    title: 'Strategy Consultant',
+    subtitle: 'BrightPath Consulting',
+    description: 'Mentored startups focusing on innovation and growth.',
+    startDate: '2016',
+    endDate: 'Present',
+  },
+];
+
+export const educationItems = [
+  {
+    title: 'Master of Business Administration (MBA)',
+    subtitle: 'University of Toronto, Rotman School of Management',
+    startDate: '2018',
+    endDate: '2020',
+  },
+  {
+    title: 'Bachelor of Computer Science',
+    subtitle: 'University of British Columbia',
+    startDate: '2013',
+    endDate: '2017',
+  },
+  {
+    title: 'Certificate in UX Design',
+    subtitle: 'Coursera / Google UX Design Program',
+    startDate: '2021',
+    endDate: '2022',
+  },
+];
 
 export default function Page({
   params: { pageUserId },
@@ -122,7 +161,7 @@ export default function Page({
         </div>
 
         <div className="flex gap-40">
-          <div className="w-full lg:w-1/2">
+          <div className="w-full">
             <div>
               <p className="mb-4 text-xl font-bold">關於我</p>
               <p className="text-sm text-gray-400">{userData?.about}</p>
@@ -131,11 +170,13 @@ export default function Page({
             {isMentor && (
               <div className="mt-10">
                 <p className="mb-4 text-xl font-bold">專業能力</p>
-                {userData?.expertises?.professions?.map((i) => (
-                  <Badge variant={'primaryAlt'} key={i.subject_group}>
-                    {i.subject_group}
-                  </Badge>
-                ))}
+                <div className="flex gap-3">
+                  {userData?.expertises?.professions?.map((i) => (
+                    <Badge variant={'primaryAlt'} key={i.subject_group}>
+                      {i.subject_group}
+                    </Badge>
+                  ))}
+                </div>
               </div>
             )}
 
@@ -148,47 +189,55 @@ export default function Page({
 
             <div className="mt-10">
               <p className="mb-4 text-xl font-bold">專長領域</p>
-              {userData?.expertises?.professions?.map((i) => (
-                <Badge variant={'primaryAlt'} key={i.subject_group}>
-                  {i.subject_group}
-                </Badge>
-              ))}
+              <div className="flex gap-3">
+                {userData?.expertises?.professions?.map((i) => (
+                  <Badge variant={'primaryAlt'} key={i.subject_group}>
+                    {i.subject_group}
+                  </Badge>
+                ))}
+              </div>
             </div>
 
             <div className="mt-10">
               <p className="mb-4 text-xl font-bold">有興趣的職位</p>
-              {userData?.interested_positions?.interests?.map((i) => (
-                <Badge variant={'primaryAlt'} key={i.subject_group}>
-                  {i.subject_group}
-                </Badge>
-              ))}
+              <div className="flex gap-3">
+                {userData?.interested_positions?.interests?.map((i) => (
+                  <Badge variant={'primaryAlt'} key={i.subject_group}>
+                    {i.subject_group}
+                  </Badge>
+                ))}
+              </div>
             </div>
 
             <div className="mt-10">
               <p className="mb-4 text-xl font-bold">有興趣的技能</p>
-              {userData?.skills?.interests?.map((i) => (
-                <Badge variant={'primaryAlt'} key={i.subject_group}>
-                  {i.subject_group}
-                </Badge>
-              ))}
+              <div className="flex gap-3">
+                {userData?.skills?.interests?.map((i) => (
+                  <Badge variant={'primaryAlt'} key={i.subject_group}>
+                    {i.subject_group}
+                  </Badge>
+                ))}
+              </div>
             </div>
 
             <div className="mt-10">
               <p className="mb-4 text-xl font-bold">有興趣的主題</p>
-              {userData?.topics?.interests?.map((i) => (
-                <Badge variant={'primaryAlt'} key={i.subject_group}>
-                  {i.subject_group}
-                </Badge>
-              ))}
+              <div className="flex gap-3">
+                {userData?.topics?.interests?.map((i) => (
+                  <Badge variant={'primaryAlt'} key={i.subject_group}>
+                    {i.subject_group}
+                  </Badge>
+                ))}
+              </div>
             </div>
 
             <div className="mt-10">
               <p className="mb-4 text-xl font-bold">工作經驗</p>
-              <p className="text-sm text-gray-400">目前還沒有工作經驗</p>
+              <ExperienceSection items={workItems} />
             </div>
             <div className="mt-10">
               <p className="mb-4 text-xl font-bold">教育</p>
-              <p className="text-sm text-gray-400">目前還沒有教育</p>
+              <ExperienceSection items={educationItems} />
             </div>
           </div>
 
