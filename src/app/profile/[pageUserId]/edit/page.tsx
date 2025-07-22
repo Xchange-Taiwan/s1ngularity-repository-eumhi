@@ -81,7 +81,6 @@ export default function Page({
 
   const searchParams = useSearchParams();
   const isMentorOnboarding = searchParams?.get('onboarding') === 'true';
-  // const isMentorOnboarding = true;
 
   const [originalWorkExperiences, setOriginalWorkExperiences] = useState<
     WorkExperienceFormValue[]
