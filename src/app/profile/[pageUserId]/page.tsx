@@ -9,7 +9,7 @@ import DefaultAvatarImgUrl from '@/assets/default-avatar.jpeg';
 import { ExperienceSection } from '@/components/profile/ExperienceSection/ExperienceSection';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { fetchUser } from '@/services/profile/user';
+import { fetchUserById } from '@/services/profile/user';
 import { UserType } from '@/services/profile/user';
 
 type WorkExperienceMetadata = {
@@ -117,6 +117,7 @@ export default function Page({
   const [isMentee, setIsMentee] = useState(false);
   const [isMentor, setIsMentor] = useState(false);
   const [userData, setUserData] = useState<UserType | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -127,9 +128,17 @@ export default function Page({
       setLoginUserId(!!user?.id ? String(user?.id) : '');
     };
 
-    async function fetchUserData() {
+    fetchSession();
+  }, []);
+
+  useEffect(() => {
+    const userId = Number(pageUserId);
+    if (!userId || isNaN(userId)) return;
+
+    const fetchUserData = async () => {
+      setLoading(true);
       try {
-        const data = await fetchUser('zh_TW');
+        const data = await fetchUserById(userId, 'zh_TW');
         if (data) {
           setUserData(data);
           setIsMentor(data.is_mentor);
@@ -137,12 +146,25 @@ export default function Page({
         }
       } catch (err) {
         console.error('Fetch User Data Error:', err);
+      } finally {
+        setLoading(false);
       }
-    }
+    };
 
-    fetchSession();
     fetchUserData();
-  }, []);
+  }, [pageUserId]);
+
+  if (loading) {
+    return null;
+  }
+
+  if (!userData) {
+    return (
+      <div className="flex h-[50vh] items-center justify-center text-gray-500">
+        沒有該位使用者
+      </div>
+    );
+  }
 
   const firstWorkExperience = userData?.experiences?.find(
     (exp) => (exp.category as string) === 'WORK',
@@ -209,10 +231,6 @@ export default function Page({
             ?.data ?? [];
         return metadataArray.filter((link) => link.url);
       }) || [];
-
-  if (!userData) {
-    return null;
-  }
 
   return (
     <div>
