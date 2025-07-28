@@ -1,0 +1,184 @@
+name: ⚡ Performance Monitoring
+
+on:
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'package.json'
+      - 'next.config.js'
+
+env:
+  NODE_VERSION: 20
+  PNPM_VERSION: 9.12.3
+
+jobs:
+  bundle-analysis:
+    name: 📦 Bundle Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 🔧 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 🏗️ Build application
+        run: pnpm run build
+        env:
+          NEXT_PUBLIC_API_URL: 'https://api.example.com'
+          NEXTAUTH_SECRET: 'test-secret-for-build'
+          NEXTAUTH_URL: 'http://localhost:3000'
+          ANALYZE: true
+
+      - name: 📊 Analyze bundle size
+        run: |
+          # Check if .next directory exists
+          if [ -d ".next" ]; then
+            echo "📦 Bundle analysis:"
+            
+            # Get build info
+            if [ -f ".next/build-manifest.json" ]; then
+              echo "✅ Build manifest found"
+            fi
+            
+            # Check for large chunks
+            find .next/static -name "*.js" -size +500k -exec ls -lh {} \; | while read line; do
+              echo "⚠️ Large chunk found: $line"
+            done
+            
+            # Total bundle size
+            total_size=$(du -sh .next/static 2>/dev/null | cut -f1 || echo "Unknown")
+            echo "📊 Total static assets size: $total_size"
+            
+            # Check for duplicate dependencies
+            echo "🔍 Checking for potential duplicate dependencies..."
+            find .next/static -name "*.js" | head -5 | xargs grep -l "react" | wc -l
+          else
+            echo "❌ Build directory not found"
+            exit 1
+          fi
+
+      - name: 📈 Bundle size report
+        run: |
+          echo "## 📦 Bundle Size Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| File | Size |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|------|" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -d ".next/static" ]; then
+            find .next/static -name "*.js" -exec ls -lh {} \; | head -10 | while read -r line; do
+              size=$(echo $line | awk '{print $5}')
+              file=$(echo $line | awk '{print $9}' | sed 's|.next/static/||')
+              echo "| $file | $size |" >> $GITHUB_STEP_SUMMARY
+            done
+          fi
+
+  lighthouse-audit:
+    name: 🏠 Lighthouse Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 🔧 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 🏗️ Build application
+        run: pnpm run build
+        env:
+          NEXT_PUBLIC_API_URL: 'https://api.example.com'
+          NEXTAUTH_SECRET: 'test-secret-for-build'
+          NEXTAUTH_URL: 'http://localhost:3000'
+
+      - name: 🚀 Start application
+        run: |
+          pnpm run start &
+          sleep 10
+          curl -f http://localhost:3000 || (echo "❌ App failed to start" && exit 1)
+        env:
+          NEXT_PUBLIC_API_URL: 'https://api.example.com'
+          NEXTAUTH_SECRET: 'test-secret-for-build'
+          NEXTAUTH_URL: 'http://localhost:3000'
+
+      - name: 🏠 Run Lighthouse audit
+        uses: treosh/lighthouse-ci-action@v10
+        with:
+          urls: |
+            http://localhost:3000
+            http://localhost:3000/about
+          configPath: './.lighthouserc.json'
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+
+  accessibility-audit:
+    name: ♿ Accessibility Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 🔧 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 🏗️ Build application
+        run: pnpm run build
+        env:
+          NEXT_PUBLIC_API_URL: 'https://api.example.com'
+          NEXTAUTH_SECRET: 'test-secret-for-build'
+          NEXTAUTH_URL: 'http://localhost:3000'
+
+      - name: 🚀 Start application
+        run: |
+          pnpm run start &
+          sleep 10
+        env:
+          NEXT_PUBLIC_API_URL: 'https://api.example.com'
+          NEXTAUTH_SECRET: 'test-secret-for-build'
+          NEXTAUTH_URL: 'http://localhost:3000'
+
+      - name: ♿ Run accessibility tests
+        run: |
+          npm install -g @axe-core/cli
+          axe http://localhost:3000 --exit || {
+            echo "❌ Accessibility issues found!"
+            echo "Please fix accessibility issues before merging."
+            exit 1
+          }

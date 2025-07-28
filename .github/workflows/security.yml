@@ -1,0 +1,194 @@
+name: 🔒 Security Checks
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Run security checks daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+env:
+  NODE_VERSION: 20
+  PNPM_VERSION: 9.12.3
+
+jobs:
+  dependency-security:
+    name: 🛡️ Dependency Security
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 🔧 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 🔍 Run npm audit
+        run: |
+          pnpm audit --audit-level moderate || {
+            echo "❌ Security vulnerabilities found!"
+            echo "Run 'pnpm audit' locally to see details."
+            echo "Use 'pnpm audit --fix' to automatically fix issues."
+            exit 1
+          }
+
+      - name: 📊 Generate security report
+        if: always()
+        run: |
+          pnpm audit --json > security-report.json || true
+          echo "Security audit completed"
+
+      - name: 📤 Upload security report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report
+          path: security-report.json
+
+  secret-scanning:
+    name: 🔍 Secret Scanning
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🔍 Scan for secrets with TruffleHog
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --debug --only-verified
+
+  code-scanning:
+    name: 🔬 Code Scanning
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔬 Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 🔧 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 🏗️ Build for analysis
+        run: pnpm run build
+        env:
+          NEXT_PUBLIC_API_URL: 'https://api.example.com'
+          NEXTAUTH_SECRET: 'test-secret-for-analysis'
+          NEXTAUTH_URL: 'http://localhost:3000'
+
+      - name: 🔬 Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+  environment-security:
+    name: 🌍 Environment Security
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔍 Check for hardcoded secrets
+        run: |
+          # Check for potential API keys, tokens, passwords
+          if grep -r -i "api[_-]key\|secret\|password\|token" src/ --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" | grep -v "process.env" | grep -v "// " | grep -v "/\*"; then
+            echo "❌ Potential hardcoded secrets found!"
+            echo "Make sure all secrets use environment variables."
+            exit 1
+          fi
+
+      - name: 🔍 Check environment variable usage
+        run: |
+          # Ensure all environment variables are properly typed
+          if grep -r "process\.env\." src/ --include="*.ts" --include="*.tsx" | grep -v "process\.env\.NODE_ENV" | grep -v "process\.env\.NEXT_PUBLIC_"; then
+            echo "⚠️ Direct process.env usage found. Consider using a validated env config."
+          fi
+
+      - name: 🔍 Check for exposed sensitive files
+        run: |
+          sensitive_files=(".env" ".env.local" ".env.development" ".env.production" "*.pem" "*.key" "*.p12")
+          for pattern in "${sensitive_files[@]}"; do
+            if find . -name "$pattern" -not -path "./node_modules/*" -not -path "./.git/*"; then
+              echo "❌ Sensitive file pattern '$pattern' found in repository!"
+              exit 1
+            fi
+          done
+
+  license-compliance:
+    name: 📄 License Compliance
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 🔧 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 📄 Check licenses
+        run: |
+          npx license-checker --summary || {
+            echo "⚠️ License check failed. Installing license-checker..."
+            npm install -g license-checker
+            npx license-checker --summary
+          }
+
+      - name: 📄 Generate license report
+        run: |
+          npx license-checker --json > licenses.json || true
+
+      - name: 📤 Upload license report
+        uses: actions/upload-artifact@v4
+        with:
+          name: license-report
+          path: licenses.json

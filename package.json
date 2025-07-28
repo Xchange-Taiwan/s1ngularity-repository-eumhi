@@ -7,10 +7,17 @@
     "dev-turbo": "next dev --turbo",
     "build": "next build",
     "start": "next start",
-    "lint": "prettier --write . && eslint --fix",
+    "lint": "prettier --write . && eslint --fix .",
+    "lint:check": "prettier --check . && eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint:fix": "prettier --write . && eslint --fix . --ext .js,.jsx,.ts,.tsx",
+    "type-check": "tsc --noEmit",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "ci": "pnpm run lint:check && pnpm run type-check && pnpm run build",
+    "security:audit": "pnpm audit --audit-level moderate",
+    "deps:check": "npx depcheck --ignores='@types/*,eslint-*,prettier-*,@storybook/*,husky,lint-staged,postcss,autoprefixer,tsconfig-paths-webpack-plugin'",
+    "deps:update": "npx npm-check-updates -u && pnpm install"
   },
   "dependencies": {
     "@emotion/react": "^11.11.3",

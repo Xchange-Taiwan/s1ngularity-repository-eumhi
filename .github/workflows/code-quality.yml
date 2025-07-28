@@ -1,0 +1,178 @@
+name: 🔧 Code Quality Checks
+
+on:
+  workflow_call:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'src/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.eslintrc.json'
+      - 'tsconfig.json'
+      - 'tailwind.config.js'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'src/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.eslintrc.json'
+      - 'tsconfig.json'
+      - 'tailwind.config.js'
+
+env:
+  NODE_VERSION: 20
+  PNPM_VERSION: 9.12.3
+
+jobs:
+  lint-and-format:
+    name: 🎨 Lint & Format
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 🔧 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 🎨 Check Prettier formatting
+        run: |
+          pnpm exec prettier --check . || {
+            echo "❌ Code formatting issues found. Run 'pnpm exec prettier --write .' to fix."
+            exit 1
+          }
+
+      - name: 🔧 Run ESLint
+        run: |
+          pnpm exec eslint . --ext .js,.jsx,.ts,.tsx --max-warnings 0 || {
+            echo "❌ ESLint issues found. Run 'pnpm run lint' to see details."
+            exit 1
+          }
+
+      - name: 📝 Check for TODO/FIXME comments
+        run: |
+          if grep -r "TODO\|FIXME" src/ --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx"; then
+            echo "⚠️ Found TODO/FIXME comments. Please resolve before merging."
+            exit 1
+          fi
+
+  typescript-check:
+    name: 🔍 TypeScript Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 🔧 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 🔍 TypeScript compilation check
+        run: |
+          pnpm exec tsc --noEmit || {
+            echo "❌ TypeScript compilation errors found."
+            exit 1
+          }
+
+      - name: 🔍 Check for any types
+        run: |
+          if grep -r ": any\|as any" src/ --include="*.ts" --include="*.tsx"; then
+            echo "⚠️ Found 'any' types. Please use proper typing."
+            exit 1
+          fi
+
+  dependency-check:
+    name: 📦 Dependency Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 🔧 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 🔍 Check for unused dependencies
+        run: |
+          npx depcheck --ignores="@types/*,eslint-*,prettier-*,@storybook/*,husky,lint-staged,postcss,autoprefixer,tsconfig-paths-webpack-plugin" || {
+            echo "⚠️ Unused dependencies found. Please remove them."
+            exit 1
+          }
+
+      - name: 🔒 Check for vulnerable dependencies
+        run: |
+          pnpm audit --audit-level moderate || {
+            echo "❌ Security vulnerabilities found in dependencies."
+            exit 1
+          }
+
+  code-complexity:
+    name: 🧮 Code Complexity
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 🧮 Check file sizes
+        run: |
+          find src/ -name "*.ts" -o -name "*.tsx" | xargs wc -l | sort -nr | head -10
+          
+          # Check for files over 300 lines
+          large_files=$(find src/ -name "*.ts" -o -name "*.tsx" | xargs wc -l | awk '$1 > 300 {print $2 " (" $1 " lines)"}')
+          if [ ! -z "$large_files" ]; then
+            echo "⚠️ Large files found (>300 lines):"
+            echo "$large_files"
+            echo "Consider breaking these into smaller components."
+          fi
+
+      - name: 🔍 Check for console statements
+        run: |
+          console_statements=$(grep -r "console\." src/ --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" || true)
+          if [ ! -z "$console_statements" ]; then
+            echo "❌ Console statements found in source code:"
+            echo "$console_statements"
+            echo "Please remove console statements before merging."
+            exit 1
+          fi
