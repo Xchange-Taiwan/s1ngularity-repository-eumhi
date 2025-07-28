@@ -1,0 +1,299 @@
+name: 🔍 Continuous Integration
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: 20
+  PNPM_VERSION: 9.12.3
+
+jobs:
+  # Job 1: Code Quality Checks
+  code-quality:
+    name: 🧹 Code Quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Full history for better analysis
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 🔧 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: 📋 Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: 🗂️ Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 🔍 TypeScript type checking
+        run: pnpm exec tsc --noEmit
+
+      - name: 🎨 Check code formatting
+        run: pnpm exec prettier --check .
+
+      - name: 🔧 Run ESLint
+        run: pnpm exec eslint . --ext .js,.jsx,.ts,.tsx --format=github
+
+      - name: 📊 Check for unused dependencies
+        run: |
+          npx depcheck --ignores="@types/*,eslint-*,prettier-*,@storybook/*,husky,lint-staged,postcss,autoprefixer,tsconfig-paths-webpack-plugin"
+
+  # Job 2: Security Scanning
+  security:
+    name: 🔒 Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 🔧 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 🛡️ Run security audit
+        run: pnpm audit --audit-level moderate
+
+      - name: 🔍 Scan for secrets
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+          extra_args: --debug --only-verified
+
+  # Job 3: Build Test
+  build:
+    name: 🏗️ Build Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [code-quality]
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 🔧 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: 📋 Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: 🗂️ Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 🏗️ Build application
+        run: pnpm run build
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL || 'https://api.example.com' }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'test-secret-for-build' }}
+          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL || 'http://localhost:3000' }}
+
+      - name: 📊 Analyze bundle size
+        run: |
+          npx @next/bundle-analyzer --help || echo "Bundle analyzer not available"
+          # You can add bundle size analysis here
+
+  # Job 4: Storybook Build Test
+  storybook:
+    name: 📚 Storybook Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [code-quality]
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 🔧 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 📚 Build Storybook
+        run: pnpm run build-storybook
+
+  # Job 5: Accessibility Testing
+  accessibility:
+    name: ♿ Accessibility Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [build]
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 🔧 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: ♿ Run accessibility tests
+        run: |
+          # Install axe-core CLI for accessibility testing
+          npm install -g @axe-core/cli
+          # You can add specific accessibility tests here
+          echo "Accessibility tests would run here"
+
+  # Job 6: Performance Budget Check
+  performance:
+    name: ⚡ Performance Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [build]
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 🔧 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: ⚡ Check bundle size
+        run: |
+          pnpm run build
+          # Add bundle size checking logic
+          echo "Bundle size check would run here"
+
+  # Job 7: Code Coverage (when tests are added)
+  # test:
+  #   name: 🧪 Tests
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 10
+  #   needs: [code-quality]
+
+  #   steps:
+  #     - name: 📥 Checkout code
+  #       uses: actions/checkout@v4
+
+  #     - name: 📦 Setup Node.js
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: ${{ env.NODE_VERSION }}
+
+  #     - name: 🔧 Setup pnpm
+  #       uses: pnpm/action-setup@v4
+  #       with:
+  #         version: ${{ env.PNPM_VERSION }}
+
+  #     - name: 📦 Install dependencies
+  #       run: pnpm install --frozen-lockfile
+
+  #     - name: 🧪 Run unit tests
+  #       run: pnpm run test:coverage
+
+  #     - name: 📊 Upload coverage reports
+  #       uses: codecov/codecov-action@v3
+  #       with:
+  #         file: ./coverage/lcov.info
+  #         flags: unittests
+  #         name: codecov-umbrella
+
+  # Final job that depends on all others
+  ci-success:
+    name: ✅ CI Success
+    runs-on: ubuntu-latest
+    needs: [code-quality, security, build, storybook]
+    if: always()
+
+    steps:
+      - name: ✅ Check all jobs status
+        run: |
+          if [[ "${{ needs.code-quality.result }}" != "success" ]]; then
+            echo "❌ Code quality checks failed"
+            exit 1
+          fi
+          if [[ "${{ needs.security.result }}" != "success" ]]; then
+            echo "❌ Security checks failed"
+            exit 1
+          fi
+          if [[ "${{ needs.build.result }}" != "success" ]]; then
+            echo "❌ Build failed"
+            exit 1
+          fi
+          if [[ "${{ needs.storybook.result }}" != "success" ]]; then
+            echo "❌ Storybook build failed"
+            exit 1
+          fi
+          echo "✅ All CI checks passed!"

@@ -1,0 +1,173 @@
+name: 🔍 Pull Request Checks
+
+on:
+  pull_request:
+    branches: [main, develop]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+env:
+  NODE_VERSION: 20
+  PNPM_VERSION: 9.12.3
+
+jobs:
+  # Skip checks for draft PRs
+  check-pr-status:
+    name: 📋 Check PR Status
+    runs-on: ubuntu-latest
+    outputs:
+      should-run: ${{ steps.check.outputs.should-run }}
+    steps:
+      - name: 📋 Check if PR is ready
+        id: check
+        run: |
+          if [[ "${{ github.event.pull_request.draft }}" == "true" ]]; then
+            echo "should-run=false" >> $GITHUB_OUTPUT
+            echo "⏭️ Skipping checks for draft PR"
+          else
+            echo "should-run=true" >> $GITHUB_OUTPUT
+            echo "✅ PR is ready for checks"
+          fi
+
+  # Quick validation checks
+  quick-checks:
+    name: ⚡ Quick Checks
+    runs-on: ubuntu-latest
+    needs: check-pr-status
+    if: needs.check-pr-status.outputs.should-run == 'true'
+    timeout-minutes: 5
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📋 Check PR title format
+        run: |
+          title="${{ github.event.pull_request.title }}"
+          if [[ ! "$title" =~ ^(feat|fix|docs|style|refactor|test|chore|perf|ci)(\(.+\))?: .+ ]]; then
+            echo "❌ PR title should follow conventional commits format:"
+            echo "   feat: add new feature"
+            echo "   fix: resolve bug"
+            echo "   docs: update documentation"
+            echo "   style: formatting changes"
+            echo "   refactor: code restructuring"
+            echo "   test: add tests"
+            echo "   chore: maintenance tasks"
+            echo "   perf: performance improvements"
+            echo "   ci: CI/CD changes"
+            echo ""
+            echo "Current title: $title"
+            exit 1
+          fi
+
+      - name: 📋 Check PR description
+        run: |
+          if [[ -z "${{ github.event.pull_request.body }}" ]]; then
+            echo "❌ PR description is required"
+            exit 1
+          fi
+
+      - name: 📋 Check for breaking changes
+        run: |
+          if [[ "${{ github.event.pull_request.title }}" == *"!"* ]] || [[ "${{ github.event.pull_request.body }}" == *"BREAKING CHANGE"* ]]; then
+            echo "⚠️ Breaking change detected - ensure proper documentation"
+          fi
+
+  # File change analysis
+  analyze-changes:
+    name: 📊 Analyze Changes
+    runs-on: ubuntu-latest
+    needs: check-pr-status
+    if: needs.check-pr-status.outputs.should-run == 'true'
+    timeout-minutes: 5
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 📊 Analyze changed files
+        run: |
+          echo "## 📊 Change Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Get changed files
+          changed_files=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          
+          # Count changes by type
+          src_changes=$(echo "$changed_files" | grep "^src/" | wc -l)
+          config_changes=$(echo "$changed_files" | grep -E "\.(json|js|ts)$" | grep -v "^src/" | wc -l)
+          doc_changes=$(echo "$changed_files" | grep -E "\.(md|txt)$" | wc -l)
+          
+          echo "| Category | Files Changed |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|---------------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Source Code | $src_changes |" >> $GITHUB_STEP_SUMMARY
+          echo "| Configuration | $config_changes |" >> $GITHUB_STEP_SUMMARY
+          echo "| Documentation | $doc_changes |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Check for large PRs
+          total_changes=$(echo "$changed_files" | wc -l)
+          if [ $total_changes -gt 20 ]; then
+            echo "⚠️ Large PR detected ($total_changes files). Consider breaking into smaller PRs." >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Check for sensitive file changes
+          if echo "$changed_files" | grep -E "(package\.json|\.env|\.github/workflows)" > /dev/null; then
+            echo "🔍 Sensitive files changed - extra review required" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # Call other workflows
+  code-quality:
+    name: 🎨 Code Quality
+    needs: [check-pr-status, quick-checks]
+    if: needs.check-pr-status.outputs.should-run == 'true'
+    uses: ./.github/workflows/code-quality.yml
+
+  security:
+    name: 🔒 Security
+    needs: [check-pr-status, quick-checks]
+    if: needs.check-pr-status.outputs.should-run == 'true'
+    uses: ./.github/workflows/security.yml
+
+  performance:
+    name: ⚡ Performance
+    needs: [check-pr-status, quick-checks]
+    if: needs.check-pr-status.outputs.should-run == 'true'
+    uses: ./.github/workflows/performance.yml
+
+  # Final status check
+  pr-checks-complete:
+    name: ✅ PR Checks Complete
+    runs-on: ubuntu-latest
+    needs: [code-quality, security, performance]
+    if: always()
+
+    steps:
+      - name: ✅ Check all jobs status
+        run: |
+          if [[ "${{ needs.code-quality.result }}" != "success" ]]; then
+            echo "❌ Code quality checks failed"
+            exit 1
+          fi
+          if [[ "${{ needs.security.result }}" != "success" ]]; then
+            echo "❌ Security checks failed"
+            exit 1
+          fi
+          if [[ "${{ needs.performance.result }}" != "success" ]]; then
+            echo "❌ Performance checks failed"
+            exit 1
+          fi
+          echo "✅ All PR checks passed! Ready for review."
+
+      - name: 📝 Add success comment
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '✅ All automated checks passed! This PR is ready for review.'
+            })

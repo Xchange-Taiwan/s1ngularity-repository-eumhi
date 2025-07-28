@@ -1,0 +1,140 @@
+name: 🧪 Testing
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: 20
+  PNPM_VERSION: 9.12.3
+
+jobs:
+  # This job is ready for when you add tests
+  unit-tests:
+    name: 🧪 Unit Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 🔧 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Uncomment when you add tests
+      # - name: 🧪 Run unit tests
+      #   run: pnpm run test
+
+      # - name: 📊 Generate coverage report
+      #   run: pnpm run test:coverage
+
+      # - name: 📤 Upload coverage to Codecov
+      #   uses: codecov/codecov-action@v3
+      #   with:
+      #     file: ./coverage/lcov.info
+      #     flags: unittests
+      #     name: codecov-umbrella
+
+      - name: ℹ️ Tests placeholder
+        run: |
+          echo "🧪 Unit tests will run here when implemented"
+          echo "Add Jest or Vitest configuration and test files"
+          echo "Recommended test structure:"
+          echo "  - src/__tests__/ for unit tests"
+          echo "  - src/components/**/*.test.tsx for component tests"
+          echo "  - src/hooks/**/*.test.ts for hook tests"
+
+  component-tests:
+    name: 🎭 Component Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 🔧 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Test Storybook stories
+      - name: 📚 Test Storybook stories
+        run: |
+          pnpm run build-storybook
+          echo "✅ All Storybook stories build successfully"
+
+      # Uncomment when you add component testing
+      # - name: 🎭 Run component tests
+      #   run: pnpm run test:components
+
+      - name: ℹ️ Component tests placeholder
+        run: |
+          echo "🎭 Component tests will run here when implemented"
+          echo "Consider adding:"
+          echo "  - React Testing Library tests"
+          echo "  - Storybook interaction tests"
+          echo "  - Visual regression tests"
+
+  integration-tests:
+    name: 🔗 Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 🔧 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 🏗️ Build application
+        run: pnpm run build
+        env:
+          NEXT_PUBLIC_API_URL: 'https://api.example.com'
+          NEXTAUTH_SECRET: 'test-secret-for-build'
+          NEXTAUTH_URL: 'http://localhost:3000'
+
+      # Uncomment when you add E2E tests
+      # - name: 🔗 Run integration tests
+      #   run: pnpm run test:e2e
+
+      - name: ℹ️ Integration tests placeholder
+        run: |
+          echo "🔗 Integration tests will run here when implemented"
+          echo "Consider adding:"
+          echo "  - Playwright or Cypress E2E tests"
+          echo "  - API integration tests"
+          echo "  - Authentication flow tests"
+          echo "  - User journey tests"
