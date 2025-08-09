@@ -42,8 +42,6 @@ export function ReservationCard({
                   {item.roleLine}
                 </div>
               </div>
-              {/* Actions (right aligned) */}
-              <div className="shrink-0">{actions}</div>
             </div>
 
             {/* Divider only on >=sm to match Figma feel */}
@@ -67,6 +65,9 @@ export function ReservationCard({
                   {item.note}
                 </Badge>
               ) : null}
+
+              {/* Actions (right aligned) */}
+              <div className="ml-auto shrink-0">{actions}</div>
             </div>
           </div>
         </div>
