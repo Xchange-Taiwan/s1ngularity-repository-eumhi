@@ -20,13 +20,19 @@ export function ReservationList({
           actions={
             variant === 'history' ? null : variant === 'pending-mentor' ? (
               <div className="flex items-center gap-2">
-                <Button size="sm">Accept</Button>
-                <Button size="sm" variant="outline">
+                <Button size="sm" className="min-h-9 px-3">
+                  Accept
+                </Button>
+                <Button size="sm" variant="outline" className="min-h-9 px-3">
                   Decline
                 </Button>
               </div>
             ) : (
-              <Button size="sm" variant="outline" className="text-destructive">
+              <Button
+                size="sm"
+                variant="outline"
+                className="min-h-9 px-3 text-destructive"
+              >
                 Cancel
               </Button>
             )
