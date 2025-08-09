@@ -140,7 +140,7 @@ export default function ReservationTabs() {
                   value="upcoming-mentor"
                   className="data-[state=active]:bg-black data-[state=active]:text-white shrink-0 rounded-full border border-border px-3 py-1.5 text-sm first:ml-0 last:mr-3"
                 >
-                  即將到來（老師）
+                  即將到來（導師）
                   <span className="ml-1 text-xs text-muted-foreground">4</span>
                 </TabsTrigger>
 
