@@ -1,4 +1,4 @@
-import ReservationTabs from './ReservationTabs';
+import ReservationTabs from './reservationTabs';
 
 export default function ReservationPresentation() {
   return (
