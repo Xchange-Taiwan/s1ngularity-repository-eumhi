@@ -11,10 +11,7 @@ import { ExperienceSection } from '@/components/profile/ExperienceSection/Experi
 import { ScheduleCalendar } from '@/components/profile/ScheduleCalendar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-
-import { Calendar } from '@/components/ui/calendar';
 import { useMentorSchedule } from '@/hooks/useMentorSchedule';
-
 import { fetchUserById } from '@/services/profile/user';
 import { UserType } from '@/services/profile/user';
 
