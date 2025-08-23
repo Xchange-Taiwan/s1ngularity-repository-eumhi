@@ -5,7 +5,7 @@ on:
     branches: ['**']
 
 permissions:
-  contents: write         # 讓 GITHUB_TOKEN 能夠 push（同 repo PR 才用得到）
+  contents: write # 讓 GITHUB_TOKEN 能夠 push（同 repo PR 才用得到）
   pull-requests: write
 
 jobs:
